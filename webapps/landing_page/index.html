@@ -711,7 +711,7 @@
                         <option value="es">🇪🇸 ES</option>
                     </select>
                 </li>
-                <li><a href="https://t.me/softi_bridge_bot" class="btn-cta-nav" data-i18n="nav.cta">Get Started</a></li>
+                <li><a href="#access-hub" class="btn-cta-nav">Accedi / Registrati</a></li>
             </ul>
         </div>
     </nav>
@@ -790,12 +790,18 @@
                 <div class="feature-box auth-box">
                     <h3>Accesso Partner & Admin</h3>
                     <p>Area dedicata ai fornitori di segnali e amministratori di sistema.</p>
-                    <div class="auth-form-grid" style="gap: 1rem; margin-top: 1rem;">
-                        <a id="link-admin-dash" href="/dashboard/admin/" class="btn-secondary"
-                            style="width: 100%; text-align: center; justify-content: center;">Dashboard Admin</a>
-                        <a id="link-super-admin-dash" href="/dashboard/super-admin/" class="btn-secondary"
-                            style="width: 100%; text-align: center; justify-content: center; opacity: 0.7; font-size: 0.8rem;">Super
-                            Admin Portal</a>
+                    <div class="auth-form-grid" style="margin-top: 1rem;">
+                        <input id="hub-admin-email" type="email" placeholder="Email Admin/Partner" />
+                        <input id="hub-admin-password" type="password" placeholder="Password" />
+                        <button id="hub-admin-login-btn" class="btn-secondary" type="button"
+                            style="width: 100%; justify-content: center;">Accedi al Pannello Admin</button>
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; opacity: 0.7;">
+                        <a id="link-admin-dash" href="/dashboard/admin/"
+                            style="color: var(--text-dim); text-decoration: none;">Link Diretto Admin</a>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        <a id="link-super-admin-dash" href="/dashboard/super-admin/"
+                            style="color: var(--text-dim); text-decoration: none;">Link Diretto Super Admin</a>
                     </div>
                 </div>
             </div>
@@ -2152,6 +2158,21 @@
                 await loginAndRoute(email, password);
             } catch (err) {
                 setAuthStatus(`Login fallito: ${err.message}`, 'err');
+            }
+        });
+
+        document.getElementById('hub-admin-login-btn')?.addEventListener('click', async () => {
+            const email = (document.getElementById('hub-admin-email')?.value || '').trim();
+            const password = document.getElementById('hub-admin-password')?.value || '';
+            if (!email || !password) {
+                setAuthStatus('Inserisci email e password per accedere al pannello Admin.', 'err');
+                return;
+            }
+            try {
+                setAuthStatus('Accesso Admin in corso...', 'info');
+                await loginAndRoute(email, password);
+            } catch (err) {
+                setAuthStatus(`Login Admin fallito: ${err.message}`, 'err');
             }
         });
 
