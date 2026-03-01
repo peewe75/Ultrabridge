@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoftiBridge Admin Lite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">SB</div>
+        <div>
+          <div class="brand-title">SoftiBridge</div>
+          <div class="brand-tag">ADMIN LITE</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="clients">Clienti</button>
+        <button class="nav-item" data-view="licenses">Licenze</button>
+        <button class="nav-item" data-view="billing">Fatture & Pagamenti</button>
+        <button class="nav-item" data-view="branding">Branding</button>
+        <button class="nav-item" data-view="setup">Setup</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="mini-label">Stato Login</div>
+        <div id="sidebar-login-state" class="state-pill offline">Non connesso</div>
+        <div class="mini-note">Questa web app gestisce solo il tuo ecosistema Admin (L1).</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div id="view-badge" class="view-badge">ADMIN LITE</div>
+          <h1 id="view-title">Dashboard</h1>
+          <p id="view-subtitle">Controllo operativo del tuo network clienti</p>
+        </div>
+        <div class="top-actions">
+          <button id="quick-refresh-btn" class="btn ghost">Aggiorna</button>
+          <div id="api-chip" class="chip">API: non configurata</div>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div class="grid stats">
+          <article class="card stat">
+            <div class="label">Clienti</div>
+            <div id="kpi-clients" class="value">0</div>
+            <div class="hint">Solo nel tuo perimetro</div>
+          </article>
+          <article class="card stat">
+            <div class="label">Licenze</div>
+            <div id="kpi-licenses" class="value">0</div>
+            <div class="hint">Totali gestite</div>
+          </article>
+          <article class="card stat">
+            <div class="label">Licenze Attive</div>
+            <div id="kpi-licenses-active" class="value">0</div>
+            <div class="hint">Operative adesso</div>
+          </article>
+          <article class="card stat">
+            <div class="label">Incassato</div>
+            <div id="kpi-paid" class="value">€0</div>
+            <div class="hint">Pagamenti clienti registrati</div>
+          </article>
+        </div>
+
+        <div class="grid two">
+          <article class="card">
+            <div class="card-head">
+              <h3>Profilo Admin</h3>
+              <span id="admin-status-badge" class="status-badge muted">N/D</span>
+            </div>
+            <div id="admin-profile-box" class="kv-list muted-box">
+              Configura API e fai login dal tab Setup.
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <h3>Piano & Limiti</h3>
+              <span class="status-badge outline">L1</span>
+            </div>
+            <div id="admin-limits-box" class="kv-list muted-box">
+              Nessun dato disponibile.
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-clients" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>Nuovo Cliente</h3>
+            <span class="helper">Assegnato automaticamente al tuo Admin</span>
+          </div>
+          <form id="create-client-form" class="form-grid">
+            <input name="full_name" placeholder="Nome cliente" required>
+            <input name="email" type="email" placeholder="Email">
+            <input name="telegram_username" placeholder="Telegram (@username)">
+            <input name="phone" placeholder="Telefono">
+            <input name="country_code" placeholder="Paese (IT)">
+            <button class="btn primary" type="submit">Crea Cliente</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Clienti</h3>
+            <div class="inline-tools">
+              <input id="clients-search" placeholder="Cerca cliente...">
+              <button id="refresh-clients-btn" class="btn ghost" type="button">Aggiorna</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th><th>Email</th><th>Telegram</th><th>Paese</th><th>Stato</th>
+                </tr>
+              </thead>
+              <tbody id="clients-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-licenses" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>Nuova Licenza</h3>
+            <span class="helper">Solo per i tuoi clienti</span>
+          </div>
+          <form id="create-license-form" class="form-grid license-form">
+            <select id="license-client-id" required></select>
+            <select id="license-plan-code" required>
+              <option value="BASIC">BASIC</option>
+              <option value="PRO">PRO</option>
+              <option value="ENTERPRISE">ENTERPRISE</option>
+            </select>
+            <input id="license-days" type="number" min="1" max="3650" value="30" required>
+            <button class="btn primary" type="submit">Crea Licenza</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Licenze</h3>
+            <button id="refresh-licenses-btn" class="btn ghost" type="button">Aggiorna</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th><th>Cliente</th><th>Piano</th><th>Stato</th><th>Scadenza</th><th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="licenses-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-billing" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>Emetti Fattura Cliente</h3>
+            <span class="helper">Bonifico / USDT / Stripe</span>
+          </div>
+          <form id="issue-invoice-form" class="form-grid invoice-form">
+            <select id="invoice-client-id" required></select>
+            <input id="invoice-amount" type="number" min="1" step="0.01" placeholder="Importo EUR" required>
+            <select id="invoice-method">
+              <option value="BANK_TRANSFER">Bonifico</option>
+              <option value="USDT_TRC20">USDT TRON</option>
+              <option value="STRIPE">Stripe</option>
+            </select>
+            <select id="invoice-doc-type">
+              <option value="PROFORMA">PROFORMA</option>
+              <option value="INVOICE">FATTURA</option>
+            </select>
+            <input id="invoice-description" placeholder="Descrizione" value="Servizio SoftiBridge">
+            <button class="btn primary" type="submit">Emetti</button>
+          </form>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <div class="card-head">
+              <h3>Fatture Clienti</h3>
+              <button id="refresh-invoices-btn" class="btn ghost" type="button">Aggiorna</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Documento</th><th>Cliente</th><th>Totale</th><th>Stato</th><th>Metodo</th><th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="invoices-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card">
+              <div class="card-head">
+                <h3>Storico Pagamenti</h3>
+                <button id="refresh-payments-btn" class="btn ghost" type="button">Aggiorna</button>
+              </div>
+              <div class="table-wrap short">
+                <table>
+                  <thead>
+                    <tr><th>Cliente</th><th>Documento</th><th>Metodo</th><th>Stato</th><th>Totale</th></tr>
+                  </thead>
+                  <tbody id="payments-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>Verifica Manuali</h3>
+                <button id="refresh-manual-queue-btn" class="btn ghost" type="button">Aggiorna</button>
+              </div>
+              <div class="table-wrap short">
+                <table>
+                  <thead>
+                    <tr><th>Cliente</th><th>Documento</th><th>Metodo</th><th>Ref</th><th>Stato</th><th>Azioni</th></tr>
+                  </thead>
+                  <tbody id="manual-payments-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-branding" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>Branding Admin</h3>
+            <span class="helper">Solo il tuo brand L1</span>
+          </div>
+          <form id="branding-form" class="form-grid">
+            <input id="brand-name" placeholder="Nome brand">
+            <input id="brand-logo-url" placeholder="URL logo">
+            <input id="brand-primary" placeholder="Colore primario (#HEX)">
+            <input id="brand-secondary" placeholder="Colore secondario (#HEX)">
+            <input id="brand-sender-name" placeholder="Sender name">
+            <input id="brand-sender-email" type="email" placeholder="Sender email">
+            <input id="brand-domain" placeholder="Dominio custom (opzionale)">
+            <button class="btn primary" type="submit">Salva Branding</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="view-setup" class="view">
+        <div class="grid two">
+          <div class="card">
+            <div class="card-head">
+              <h3>Connessione API</h3>
+              <span class="helper">Stesso backend del Super Admin</span>
+            </div>
+            <form id="api-config-form" class="form-grid">
+              <input id="api-base-input" placeholder="http://127.0.0.1:8000/api" required>
+              <button class="btn primary" type="submit">Salva API URL</button>
+              <button id="test-api-btn" class="btn ghost" type="button">Test API</button>
+            </form>
+            <div id="api-test-result" class="inline-note">Nessun test eseguito.</div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Login Admin Lite</h3>
+              <span class="helper">Usa la email assegnata dal Super Admin</span>
+            </div>
+            <form id="login-form" class="form-grid">
+              <input id="login-email" type="email" placeholder="Email admin" required>
+              <input id="login-password" type="password" placeholder="Password" required>
+              <button class="btn primary" type="submit">Login</button>
+              <button id="register-admin-btn" class="btn ghost" type="button">Richiedi account ADMIN_WL</button>
+              <button id="bootstrap-demo-btn" class="btn ghost" type="button">Bootstrap Demo</button>
+              <button id="logout-btn" class="btn danger" type="button">Logout</button>
+            </form>
+            <div id="login-state-box" class="inline-note">Non autenticato.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast-stack" class="toast-stack"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

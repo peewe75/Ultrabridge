@@ -1,0 +1,458 @@
+const i18n = {
+    it: {
+        "nav.features": "Funzionalità",
+        "nav.pricing": "Prezzi",
+        "nav.faq": "FAQ",
+        "nav.cta": "Inizia Ora",
+
+        "hero.badge": "🚀 SISTEMA SaaS PER PROVIDER DI SEGNALI TRADING",
+        "hero.title": "Vendi Segnali Trading",
+        "hero.title_span": "Come un Professionista",
+        "hero.subtitle": "SoftiBridge collega il tuo canale Telegram ai conti MetaTrader dei tuoi abbonati. I tuoi segnali diventano trade reali, in automatico, 24/7 — senza interventi manuali.",
+        "hero.launch": "🔥 LANCIO: SCONTO -20% SU TUTTI I PIANI PER I PRIMI 50 ISCRITTI",
+        "hero.btn_primary": "Scegli il Piano",
+        "hero.btn_secondary": "🏢 Sono un Provider (Admin)",
+        "hero.trust1": "Trader Attivi",
+        "hero.trust2": "Latenza Segnale",
+        "hero.trust3": "Uptime SLA",
+        "hero.trust4": "Network Affiliati",
+
+        "features.h2": "Tutto quello che ti serve, già pronto",
+        "features.p": "SoftiBridge è il layer di controllo tra il tuo canale Telegram e i conti MetaTrader dei tuoi clienti. Segnale inviato = trade aperto, in automatico.",
+        "feat1.h3": "Bridge MT4 & MT5",
+        "feat1.p": "Il bot riceve i segnali dal gruppo Telegram e li invia all'EA del cliente in millisecondi. Niente copia-incolla, meno errori, più retention.",
+        "feat2.h3": "Protezione Anti-Piracy",
+        "feat2.p": "Licenze firmate HMAC, controllo installazione e remote kill per bloccare abusi e condivisioni non autorizzate.",
+        "feat3.h3": "Reminder & Rinnovi Automatici",
+        "feat3.p": "Reminder D-7, D-3 e D-0 e flusso di rinnovo pensato per ridurre churn e ticket manuali.",
+        "feat4.h3": "Licenza Attiva in 30 secondi",
+        "feat4.p": "Acquisto → licenza → credenziali → attivazione EA. Un processo veloce e ripetibile, adatto alla vendita su scala.",
+        "feat5.h3": "VPS Migration Automatica",
+        "feat5.p": "Cambio VPS? Il sistema invalida l'ID precedente e autorizza il nuovo ambiente in modo controllato.",
+        "feat6.h3": "Potenzialità di Scalabilità",
+        "feat6.p": "Parti da una singola sala Telegram e cresci fino a più gruppi, VPS e account gestiti con la stessa infrastruttura. SoftiBridge è pensato per evolvere con il tuo business.",
+
+        "pricing.user.badge": "👤 PER I TRADER (USO PERSONALE)",
+        "pricing.user.h2": "Non perdere più un segnale dalla tua sala di trading",
+        "pricing.user.p": "Acquista il Bot, collegalo a MetaTrader e automatizza i segnali del tuo gruppo Telegram VIP. Scegli il piano in base a gruppi/account da gestire.",
+        "pricing.basic.cta": "Inizia con BASIC",
+        "pricing.pro.cta": "Domina con PRO",
+        "pricing.enterprise.cta": "Vai ENTERPRISE",
+
+        "adv.h2": "Perché i Provider Scelgono SoftiBridge",
+        "adv.p": "Riduci i problemi tecnici, automatizza rinnovi e costruisci un business ricorrente con controllo licenze e rete affiliati.",
+        "adv1.h3": "📈 +40% Retention Media",
+        "adv1.p": "Reminder automatici e flussi di rinnovo aiutano a trattenere i clienti senza inseguirli manualmente.",
+        "adv2.h3": "🛡️ Controllo Licenze e Anti-Abusi",
+        "adv2.p": "HMAC, binding installazione e revoche remote proteggono il tuo modello di business e il lavoro del provider.",
+        "adv3.h3": "💰 Network & Revenue Split",
+        "adv3.p": "Gestisci admin WL, affiliati e distribuzione fee in un ecosistema controllato e tracciabile.",
+        "adv4.h3": "⚙️ Onboarding Cliente Guidato",
+        "adv4.p": "Licenza, download EA e pagamenti in un flusso unico per ridurre attriti e richieste di supporto.",
+        "adv5.h3": "🧾 Fatture & Pagamenti Centralizzati",
+        "adv5.p": "Stripe, bonifico e USDT TRON nello stesso pannello con verifica manuale e storico tracciato.",
+        "adv6.h3": "📡 Controllo Operativo End-to-End",
+        "adv6.p": "Segnali, bridge EA, notifiche Telegram e audit log nello stesso ecosistema operativo.",
+
+        "admin.badge": "👑 PER PROVIDER DI SEGNALI E ADMIN",
+        "admin.h2": "🏢 Diventa Admin White Label del tuo Network",
+        "admin.p": "Acquista il sistema Admin, crea il tuo bot Telegram personalizzato e rivendi il servizio ai clienti finali con gestione licenze, affiliati e fee.",
+        "admin.starter.cta": "Inizia con STARTER",
+        "admin.growth.cta": "Domina con GROWTH",
+        "admin.enterprise.cta": "Vai ENTERPRISE",
+        "admin.structure.h3": "Struttura commerciale multi-livello (L0 / L1 / L2)",
+        "admin.l0.title": "L0 SUPER ADMIN",
+        "admin.l0.desc": "Controllo globale rete, fee policy, licenze master e supervisione billing.",
+        "admin.l1.title": "L1 ADMIN WL",
+        "admin.l1.desc": "Vende ai clienti finali, gestisce CRM, licenze, fatture e supporto operativo.",
+        "admin.l2.title": "L2 AFFILIATI",
+        "admin.l2.desc": "Referral tracciati con codici dedicati, fee maturate e payout verificabili.",
+        "admin.why.h3": "Perché vende meglio di una semplice sala Telegram",
+        "admin.why.1": "Licenze e accessi tracciati (anti-condivisione)",
+        "admin.why.2": "Fatture + pagamenti Stripe/Bonifico/USDT nello stesso flusso",
+        "admin.why.3": "Area client self-service con download e stato licenza",
+        "admin.why.4": "Gestione affiliati e fee payout con audit log",
+        "admin.why.5": "Bridge EA / MT4-MT5 e controllo operativo centralizzato",
+        "admin.why.6": "Scalabilità da singolo provider a network multi-brand",
+        "admin.starter.sub": "Fino a 100 clienti attivi",
+        "admin.starter.recurring": "+ EUR 90 / mese",
+        "admin.starter.f1": "100 licenze client attivabili",
+        "admin.starter.f2": "Admin web panel dedicato",
+        "admin.starter.f3": "Branding white-label base",
+        "admin.starter.f4": "Bot Telegram operativo",
+        "admin.starter.f5": "Affiliati L2 fino a 5",
+        "admin.starter.f6": "Billing/fatture centralizzate",
+        "admin.growth.sub": "Fino a 500 clienti + rete affiliati",
+        "admin.growth.recurring": "+ EUR 190 / mese",
+        "admin.growth.f1": "500 licenze client attivabili",
+        "admin.growth.f2": "Reminder rinnovi e upsell",
+        "admin.growth.f3": "Affiliati L2 fino a 20",
+        "admin.growth.f4": "Analytics conversione/churn",
+        "admin.growth.f5": "Backup database e audit esteso",
+        "admin.growth.f6": "Priorità supporto operativa",
+        "admin.enterprise.sub": "1000+ clienti / multi-brand / struttura L0-L1-L2",
+        "admin.enterprise.recurring": "+ EUR 390 / mese",
+        "admin.enterprise.f1": "Licenze e nodi scalabili (1000+)",
+        "admin.enterprise.f2": "Gestione multi-brand e multi-admin WL",
+        "admin.enterprise.f3": "Affiliati L2 illimitati",
+        "admin.enterprise.f4": "API/integrazioni e webhook estesi",
+        "admin.enterprise.f5": "SLA prioritaria e supporto dedicato",
+        "admin.enterprise.f6": "Base ideale per ruolo Super Admin",
+
+        "demo.h2": "Come gira davvero il sistema (demo operativa)",
+        "demo.p": "Dalla landing al bot Telegram, fino all'EA e al revenue split del network: un flusso unico, verificabile e vendibile.",
+        "demo.step1.h4": "Acquisto piano da Landing",
+        "demo.step1.p": "L'utente sceglie il piano e avvia il checkout (backend-first, fallback demo se API offline).",
+        "demo.step2.h4": "Provisioning licenza e accesso",
+        "demo.step2.p": "Licenza generata, cliente registrato, dashboard e download EA pronti.",
+        "demo.step3.h4": "Bridge EA / MT4-MT5",
+        "demo.step3.p": "Il bridge sincronizza queue, heartbeat e stato installazione tra backend e terminale.",
+        "demo.step4.h4": "Operatività cliente da panel",
+        "demo.step4.p": "SL/TP, close, cancel e monitoraggio trading inviati al bridge dal pannello client.",
+        "demo.step5.h4": "Revenue split e billing network",
+        "demo.step5.p": "L0/L1/L2, fatture, bonifici/USDT/Stripe e verifiche manuali nello stesso ecosistema.",
+        "demo.line1": "> [LANDING] Checkout request created for tier=PRO ...",
+        "demo.line2": "> [BACKEND] License + client dashboard provisioned ... OK",
+        "demo.line3": "> [BRIDGE] MT4/MT5 heartbeat + state sync active ... OK",
+        "demo.line4": "> [CLIENT] SET_SLTP / CLOSE / CANCEL command queued ... OK",
+        "demo.line5": "> [BILLING] L0/L1/L2 split + invoice/payment workflow ... OK",
+
+        "footer.privacy": "Privacy & GDPR",
+        "footer.terms": "Termini Legali",
+        "footer.support": "Supporto Tecnico",
+        "footer.affiliate": "Programma Affiliazione",
+        "footer.copy": "&copy; 2026 Softi Trading (L0-Global Control). Tutti i diritti riservati. <br> Powered by SoftiBridge Antigravity Ecosystem.",
+
+        "buy.prompt_email": "Inserisci la tua email per iniziare il checkout SoftiBridge:",
+        "buy.processing": "Processando...",
+        "buy.checkout_demo_ready": "Checkout Demo Pronto",
+        "buy.checkout_ready": "Checkout Creato",
+        "buy.backend_offline_title": "MODALITÀ DEMO",
+        "buy.demo_completed": "Demo Completata",
+        "buy.demo_alert": "Per il checkout reale avvia il backend FastAPI e usa /preview.",
+        "synergy.alert": "Questa opzione applica lo sconto automatico del 20% sul totale. Procedi all'acquisto per attivare il bundle Bot + EA."
+    },
+    en: {
+        "nav.features": "Features",
+        "nav.pricing": "Pricing",
+        "nav.faq": "FAQ",
+        "nav.cta": "Get Started",
+
+        "hero.badge": "🚀 SaaS SYSTEM FOR TRADING SIGNAL PROVIDERS",
+        "hero.title": "Sell Trading Signals",
+        "hero.title_span": "Like a Professional",
+        "hero.subtitle": "SoftiBridge connects your Telegram channel to your subscribers' MetaTrader accounts. Your signals become real trades automatically, 24/7, with no manual handling.",
+        "hero.launch": "🔥 LAUNCH: 20% OFF ON ALL PLANS FOR THE FIRST 50 USERS",
+        "hero.btn_primary": "Choose a Plan",
+        "hero.btn_secondary": "🏢 I am a Provider (Admin)",
+        "hero.trust1": "Active Traders",
+        "hero.trust2": "Signal Latency",
+        "hero.trust3": "SLA Uptime",
+        "hero.trust4": "Affiliate Network",
+
+        "features.h2": "Everything you need, ready to use",
+        "features.p": "SoftiBridge is the control layer between your Telegram channel and your clients' MetaTrader accounts. Signal sent = trade opened automatically.",
+        "feat1.h3": "MT4 & MT5 Bridge",
+        "feat1.p": "The bot receives signals and forwards them to the client's EA in milliseconds. No copy/paste, fewer errors, better retention.",
+        "feat2.h3": "Anti-Piracy Protection",
+        "feat2.p": "HMAC-signed licenses, install binding and remote kill protect your business from abuse and unauthorized sharing.",
+        "feat3.h3": "Automatic Reminders & Renewals",
+        "feat3.p": "D-7, D-3 and D-0 reminders plus renewal flow designed to reduce churn and manual support workload.",
+        "feat4.h3": "License Active in 30 Seconds",
+        "feat4.p": "Purchase → license → credentials → EA activation. Fast, repeatable and scalable for commercial use.",
+        "feat5.h3": "Automatic VPS Migration",
+        "feat5.p": "Changing VPS? The system invalidates the old install and authorizes the new environment in a controlled way.",
+        "feat6.h3": "Scalability Potential",
+        "feat6.p": "Start with one Telegram room and scale to multiple groups, VPS nodes and managed accounts on the same infrastructure. SoftiBridge is built to grow with your business.",
+
+        "pricing.user.badge": "👤 FOR TRADERS (PERSONAL USE)",
+        "pricing.user.h2": "Never miss a signal from your trading room again",
+        "pricing.user.p": "Buy the Bot, connect it to MetaTrader, and automate your VIP Telegram room signals. Choose the plan based on groups/accounts to manage.",
+        "pricing.basic.cta": "Start with BASIC",
+        "pricing.pro.cta": "Scale with PRO",
+        "pricing.enterprise.cta": "Go ENTERPRISE",
+
+        "adv.h2": "Why Providers Choose SoftiBridge",
+        "adv.p": "Reduce technical friction, automate renewals, and build recurring revenue with license control and affiliate network management.",
+        "adv1.h3": "📈 +40% Average Retention",
+        "adv1.p": "Automated reminders and renewal flows help retain clients without manual follow-up.",
+        "adv2.h3": "🛡️ License Control & Anti-Abuse",
+        "adv2.p": "HMAC, install binding and remote revocation protect your provider business model.",
+        "adv3.h3": "💰 Network & Revenue Split",
+        "adv3.p": "Manage white-label admins, affiliates and fee distribution in a controlled, traceable ecosystem.",
+        "adv4.h3": "⚙️ Guided Client Onboarding",
+        "adv4.p": "License, EA download and payments in one flow to reduce friction and support tickets.",
+        "adv5.h3": "🧾 Centralized Billing & Payments",
+        "adv5.p": "Stripe, bank transfer and TRON USDT in one panel with manual verification and traceable history.",
+        "adv6.h3": "📡 End-to-End Operational Control",
+        "adv6.p": "Signals, EA bridge, Telegram notifications and audit logs in one operational ecosystem.",
+
+        "admin.badge": "👑 FOR SIGNAL PROVIDERS & ADMINS",
+        "admin.h2": "🏢 Become the White-Label Admin of Your Network",
+        "admin.p": "Buy the Admin system, create your branded Telegram bot, and resell the service with licenses, affiliates and fee management.",
+        "admin.starter.cta": "Start with STARTER",
+        "admin.growth.cta": "Scale with GROWTH",
+        "admin.enterprise.cta": "Go ENTERPRISE",
+        "admin.structure.h3": "Multi-level commercial structure (L0 / L1 / L2)",
+        "admin.l0.title": "L0 SUPER ADMIN",
+        "admin.l0.desc": "Global network control, fee policy, master licenses and billing supervision.",
+        "admin.l1.title": "L1 WL ADMIN",
+        "admin.l1.desc": "Sells to end clients and manages CRM, licenses, invoices and operational support.",
+        "admin.l2.title": "L2 AFFILIATES",
+        "admin.l2.desc": "Tracked referrals with dedicated codes, accrued fees and verifiable payouts.",
+        "admin.why.h3": "Why it sells better than a simple Telegram room",
+        "admin.why.1": "Tracked licenses and access (anti-sharing)",
+        "admin.why.2": "Invoices + Stripe/Bank/USDT payments in one flow",
+        "admin.why.3": "Self-service client area with downloads and license status",
+        "admin.why.4": "Affiliate and fee payout management with audit log",
+        "admin.why.5": "EA / MT4-MT5 bridge with centralized operations control",
+        "admin.why.6": "Scales from one provider to a multi-brand network",
+        "admin.starter.sub": "Up to 100 active clients",
+        "admin.starter.recurring": "+ EUR 90 / month",
+        "admin.starter.f1": "100 client licenses activatable",
+        "admin.starter.f2": "Dedicated admin web panel",
+        "admin.starter.f3": "Basic white-label branding",
+        "admin.starter.f4": "Operational Telegram bot",
+        "admin.starter.f5": "Up to 5 L2 affiliates",
+        "admin.starter.f6": "Centralized billing/invoices",
+        "admin.growth.sub": "Up to 500 clients + affiliate network",
+        "admin.growth.recurring": "+ EUR 190 / month",
+        "admin.growth.f1": "500 client licenses activatable",
+        "admin.growth.f2": "Renewal reminders and upsell flows",
+        "admin.growth.f3": "Up to 20 L2 affiliates",
+        "admin.growth.f4": "Conversion/churn analytics",
+        "admin.growth.f5": "Database backup and extended audit",
+        "admin.growth.f6": "Priority operational support",
+        "admin.enterprise.sub": "1000+ clients / multi-brand / L0-L1-L2 structure",
+        "admin.enterprise.recurring": "+ EUR 390 / month",
+        "admin.enterprise.f1": "Scalable licenses and nodes (1000+)",
+        "admin.enterprise.f2": "Multi-brand and multi-admin WL management",
+        "admin.enterprise.f3": "Unlimited L2 affiliates",
+        "admin.enterprise.f4": "Extended APIs/integrations and webhooks",
+        "admin.enterprise.f5": "Priority SLA and dedicated support",
+        "admin.enterprise.f6": "Ideal base for Super Admin role",
+
+        "demo.h2": "How the system actually runs (operational demo)",
+        "demo.p": "From landing page to Telegram bot, EA bridge and network revenue split: one unified, verifiable and sellable flow.",
+        "demo.step1.h4": "Plan purchase from Landing",
+        "demo.step1.p": "The user chooses a plan and starts checkout (backend-first, demo fallback if API is offline).",
+        "demo.step2.h4": "License provisioning and access",
+        "demo.step2.p": "License is generated, client registered, dashboard and EA downloads ready.",
+        "demo.step3.h4": "EA Bridge / MT4-MT5",
+        "demo.step3.p": "The bridge syncs queues, heartbeat and installation state between backend and terminal.",
+        "demo.step4.h4": "Client panel operations",
+        "demo.step4.p": "SL/TP, close, cancel and trading monitoring are sent to the bridge from the client panel.",
+        "demo.step5.h4": "Revenue split and network billing",
+        "demo.step5.p": "L0/L1/L2, invoices, bank/USDT/Stripe and manual checks in the same ecosystem.",
+        "demo.line1": "> [LANDING] Checkout request created for tier=PRO ...",
+        "demo.line2": "> [BACKEND] License + client dashboard provisioned ... OK",
+        "demo.line3": "> [BRIDGE] MT4/MT5 heartbeat + state sync active ... OK",
+        "demo.line4": "> [CLIENT] SET_SLTP / CLOSE / CANCEL command queued ... OK",
+        "demo.line5": "> [BILLING] L0/L1/L2 split + invoice/payment workflow ... OK",
+
+        "footer.privacy": "Privacy & GDPR",
+        "footer.terms": "Legal Terms",
+        "footer.support": "Technical Support",
+        "footer.affiliate": "Affiliate Program",
+        "footer.copy": "&copy; 2026 Softi Trading (L0-Global Control). All rights reserved. <br> Powered by SoftiBridge Antigravity Ecosystem.",
+
+        "buy.prompt_email": "Enter your email to start SoftiBridge checkout:",
+        "buy.processing": "Processing...",
+        "buy.checkout_demo_ready": "Demo Checkout Ready",
+        "buy.checkout_ready": "Checkout Created",
+        "buy.backend_offline_title": "DEMO MODE",
+        "buy.demo_completed": "Demo Completed",
+        "buy.demo_alert": "For real checkout, start the FastAPI backend and use /preview.",
+        "synergy.alert": "This option applies the automatic 20% bundle discount. Continue to activate the Bot + EA bundle."
+    },
+    es: {
+        "nav.features": "Características",
+        "nav.pricing": "Precios",
+        "nav.faq": "FAQ",
+        "nav.cta": "Comenzar",
+
+        "hero.badge": "🚀 SISTEMA SaaS PARA PROVEEDORES DE SEÑALES",
+        "hero.title": "Vende Señales de Trading",
+        "hero.title_span": "Como un Profesional",
+        "hero.subtitle": "SoftiBridge conecta tu canal de Telegram con las cuentas MetaTrader de tus suscriptores. Tus señales se convierten en operaciones reales automáticamente, 24/7.",
+        "hero.launch": "🔥 LANZAMIENTO: 20% DE DESCUENTO EN TODOS LOS PLANES (PRIMEROS 50)",
+        "hero.btn_primary": "Elegir Plan",
+        "hero.btn_secondary": "🏢 Soy Proveedor (Admin)",
+        "hero.trust1": "Traders Activos",
+        "hero.trust2": "Latencia",
+        "hero.trust3": "Uptime SLA",
+        "hero.trust4": "Red de Afiliados",
+
+        "features.h2": "Todo lo que necesitas, listo",
+        "features.p": "SoftiBridge es la capa de control entre tu canal de Telegram y las cuentas MetaTrader de tus clientes. Señal enviada = operación abierta automáticamente.",
+        "feat1.h3": "Bridge MT4 & MT5",
+        "feat1.p": "El bot recibe señales y las envía al EA del cliente en milisegundos. Sin copiar/pegar, menos errores, mejor retención.",
+        "feat2.h3": "Protección Antipiratería",
+        "feat2.p": "Licencias con HMAC, vinculación de instalación y kill remoto para proteger tu negocio.",
+        "feat3.h3": "Recordatorios y Renovaciones",
+        "feat3.p": "Recordatorios D-7, D-3 y D-0 con flujo de renovación para reducir churn y soporte manual.",
+        "feat4.h3": "Licencia Activa en 30s",
+        "feat4.p": "Compra → licencia → credenciales → activación EA. Rápido y escalable para ventas.",
+        "feat5.h3": "Migración VPS Automática",
+        "feat5.p": "Si cambia el VPS, el sistema invalida la instalación anterior y autoriza la nueva.",
+        "feat6.h3": "Potencial de Escalabilidad",
+        "feat6.p": "Empieza con una sola sala de Telegram y crece hasta múltiples grupos, VPS y cuentas gestionadas con la misma infraestructura. SoftiBridge está pensado para crecer con tu negocio.",
+
+        "pricing.user.badge": "👤 PARA TRADERS (USO PERSONAL)",
+        "pricing.user.h2": "No pierdas más señales de tu sala de trading",
+        "pricing.user.p": "Compra el Bot, conéctalo a MetaTrader y automatiza las señales de tu grupo VIP en Telegram.",
+        "pricing.basic.cta": "Empezar con BASIC",
+        "pricing.pro.cta": "Crecer con PRO",
+        "pricing.enterprise.cta": "Ir a ENTERPRISE",
+
+        "adv.h2": "Por qué los Proveedores eligen SoftiBridge",
+        "adv.p": "Reduce problemas técnicos, automatiza renovaciones y crea ingresos recurrentes con control de licencias y afiliados.",
+        "adv1.h3": "📈 +40% Retención Media",
+        "adv1.p": "Recordatorios y renovaciones automáticas mejoran la retención sin seguimiento manual.",
+        "adv2.h3": "🛡️ Control de Licencias",
+        "adv2.p": "HMAC, vinculación y revocación remota protegen tu modelo de negocio.",
+        "adv3.h3": "💰 Red y Reparto de Ingresos",
+        "adv3.p": "Gestiona admins WL, afiliados y distribución de comisiones con trazabilidad.",
+        "adv4.h3": "⚙️ Onboarding Guiado del Cliente",
+        "adv4.p": "Licencia, descarga del EA y pagos en un solo flujo para reducir fricción y soporte.",
+        "adv5.h3": "🧾 Facturación y Pagos Centralizados",
+        "adv5.p": "Stripe, transferencia y USDT TRON en un panel con verificación manual e historial trazable.",
+        "adv6.h3": "📡 Control Operativo End-to-End",
+        "adv6.p": "Señales, bridge EA, notificaciones Telegram y audit logs en el mismo ecosistema operativo.",
+
+        "admin.badge": "👑 PARA PROVEEDORES Y ADMINS",
+        "admin.h2": "🏢 Conviértete en Admin White Label de tu Red",
+        "admin.p": "Compra el sistema Admin, crea tu bot Telegram personalizado y revende el servicio con gestión de licencias, afiliados y comisiones.",
+        "admin.starter.cta": "Empieza con STARTER",
+        "admin.growth.cta": "Crece con GROWTH",
+        "admin.enterprise.cta": "Ir a ENTERPRISE",
+        "admin.structure.h3": "Estructura comercial multinivel (L0 / L1 / L2)",
+        "admin.l0.title": "L0 SUPER ADMIN",
+        "admin.l0.desc": "Control global de red, política de comisiones, licencias master y supervisión de facturación.",
+        "admin.l1.title": "L1 ADMIN WL",
+        "admin.l1.desc": "Vende a clientes finales y gestiona CRM, licencias, facturas y soporte operativo.",
+        "admin.l2.title": "L2 AFILIADOS",
+        "admin.l2.desc": "Referidos trazados con códigos dedicados, comisiones acumuladas y pagos verificables.",
+        "admin.why.h3": "Por qué vende mejor que una simple sala de Telegram",
+        "admin.why.1": "Licencias y accesos trazados (anti-compartición)",
+        "admin.why.2": "Facturas + pagos Stripe/Transferencia/USDT en el mismo flujo",
+        "admin.why.3": "Área cliente self-service con descargas y estado de licencia",
+        "admin.why.4": "Gestión de afiliados y payouts con audit log",
+        "admin.why.5": "Bridge EA / MT4-MT5 y control operativo centralizado",
+        "admin.why.6": "Escalable de un proveedor a una red multi-marca",
+        "admin.starter.sub": "Hasta 100 clientes activos",
+        "admin.starter.recurring": "+ EUR 90 / mes",
+        "admin.starter.f1": "100 licencias cliente activables",
+        "admin.starter.f2": "Panel web admin dedicado",
+        "admin.starter.f3": "Branding white-label básico",
+        "admin.starter.f4": "Bot Telegram operativo",
+        "admin.starter.f5": "Hasta 5 afiliados L2",
+        "admin.starter.f6": "Facturación centralizada",
+        "admin.growth.sub": "Hasta 500 clientes + red de afiliados",
+        "admin.growth.recurring": "+ EUR 190 / mes",
+        "admin.growth.f1": "500 licencias cliente activables",
+        "admin.growth.f2": "Recordatorios de renovación y upsell",
+        "admin.growth.f3": "Hasta 20 afiliados L2",
+        "admin.growth.f4": "Analítica de conversión/churn",
+        "admin.growth.f5": "Backup de base de datos y auditoría extendida",
+        "admin.growth.f6": "Soporte operativo prioritario",
+        "admin.enterprise.sub": "1000+ clientes / multi-marca / estructura L0-L1-L2",
+        "admin.enterprise.recurring": "+ EUR 390 / mes",
+        "admin.enterprise.f1": "Licencias y nodos escalables (1000+)",
+        "admin.enterprise.f2": "Gestión multi-marca y multi-admin WL",
+        "admin.enterprise.f3": "Afiliados L2 ilimitados",
+        "admin.enterprise.f4": "APIs/integraciones y webhooks ampliados",
+        "admin.enterprise.f5": "SLA prioritaria y soporte dedicado",
+        "admin.enterprise.f6": "Base ideal para rol Super Admin",
+
+        "demo.h2": "Cómo funciona realmente el sistema (demo operativa)",
+        "demo.p": "Desde la landing al bot de Telegram, pasando por el bridge del EA y el reparto de ingresos de la red: un flujo único, verificable y vendible.",
+        "demo.step1.h4": "Compra de plan desde la Landing",
+        "demo.step1.p": "El usuario elige el plan e inicia el checkout (backend-first, fallback demo si la API está offline).",
+        "demo.step2.h4": "Provisioning de licencia y acceso",
+        "demo.step2.p": "Se genera la licencia, se registra el cliente y quedan listos dashboard y descargas EA.",
+        "demo.step3.h4": "Bridge EA / MT4-MT5",
+        "demo.step3.p": "El bridge sincroniza colas, heartbeat y estado de instalación entre backend y terminal.",
+        "demo.step4.h4": "Operativa del cliente desde panel",
+        "demo.step4.p": "SL/TP, cerrar, cancelar y monitorización se envían al bridge desde el panel cliente.",
+        "demo.step5.h4": "Reparto de ingresos y facturación de red",
+        "demo.step5.p": "L0/L1/L2, facturas, transferencia/USDT/Stripe y verificaciones manuales en el mismo ecosistema.",
+        "demo.line1": "> [LANDING] Checkout request created for tier=PRO ...",
+        "demo.line2": "> [BACKEND] License + client dashboard provisioned ... OK",
+        "demo.line3": "> [BRIDGE] MT4/MT5 heartbeat + state sync active ... OK",
+        "demo.line4": "> [CLIENT] SET_SLTP / CLOSE / CANCEL command queued ... OK",
+        "demo.line5": "> [BILLING] L0/L1/L2 split + invoice/payment workflow ... OK",
+
+        "footer.privacy": "Privacidad & GDPR",
+        "footer.terms": "Términos Legales",
+        "footer.support": "Soporte Técnico",
+        "footer.affiliate": "Programa de Afiliación",
+        "footer.copy": "&copy; 2026 Softi Trading (L0-Global Control). Todos los derechos reservados. <br> Powered by SoftiBridge Antigravity Ecosystem.",
+
+        "buy.prompt_email": "Introduce tu email para iniciar el checkout de SoftiBridge:",
+        "buy.processing": "Procesando...",
+        "buy.checkout_demo_ready": "Checkout Demo Listo",
+        "buy.checkout_ready": "Checkout Creado",
+        "buy.backend_offline_title": "MODO DEMO",
+        "buy.demo_completed": "Demo Completada",
+        "buy.demo_alert": "Para checkout real, inicia el backend FastAPI y usa /preview.",
+        "synergy.alert": "Esta opción aplica el descuento automático del 20% del bundle. Continúa para activar el bundle Bot + EA."
+    }
+};
+
+let currentLang = "it";
+
+function t(key, fallback = "") {
+    return (i18n[currentLang] && i18n[currentLang][key]) || fallback || key;
+}
+
+function _applyTranslation(el, value) {
+    const attr = el.getAttribute("data-i18n-attr");
+    if (attr) {
+        el.setAttribute(attr, value);
+        return;
+    }
+    const mode = el.getAttribute("data-i18n-mode");
+    if (mode === "html") {
+        el.innerHTML = value;
+        return;
+    }
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+        if (el.hasAttribute("placeholder")) {
+            el.placeholder = value;
+            return;
+        }
+    }
+    el.textContent = value;
+}
+
+function _updateHeroPrimaryButton() {
+    const heroBtn = document.querySelector('.hero-buttons .btn-primary');
+    if (!heroBtn) return;
+    heroBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.828.94z" /></svg> ${t("hero.btn_primary")}`;
+}
+
+function changeLanguage(lang) {
+    currentLang = i18n[lang] ? lang : "it";
+    document.documentElement.lang = currentLang;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        const value = t(key, "");
+        if (value) _applyTranslation(el, value);
+    });
+    _updateHeroPrimaryButton();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const langSwitcher = document.getElementById("lang-switcher");
+    const savedLang = localStorage.getItem("softibridge_lang") || "it";
+    if (langSwitcher) {
+        langSwitcher.value = i18n[savedLang] ? savedLang : "it";
+        langSwitcher.addEventListener("change", (e) => {
+            changeLanguage(e.target.value);
+            localStorage.setItem("softibridge_lang", e.target.value);
+        });
+    }
+    changeLanguage(i18n[savedLang] ? savedLang : "it");
+    window.softiI18n = { t, changeLanguage, getCurrentLanguage: () => currentLang };
+});

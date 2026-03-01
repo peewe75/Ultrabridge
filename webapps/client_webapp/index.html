@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoftiBridge Client | Trading Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* === TRADING SPECIFIC STYLES === */
+        .trading-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .trade-stat {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+        }
+
+        .trade-stat .ts-label {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+        }
+
+        .trade-stat .ts-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .trade-stat .ts-value.positive {
+            color: #00ff88;
+        }
+
+        .trade-stat .ts-value.negative {
+            color: #ff4d6d;
+        }
+
+        .trade-stat .ts-value.neutral {
+            color: var(--accent);
+        }
+
+        .trade-stat .ts-sub {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+        }
+
+        /* Positions Table */
+        .positions-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+        }
+
+        .positions-table th {
+            padding: 0.7rem 1rem;
+            text-align: left;
+            color: var(--text-dim);
+            font-weight: 500;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .positions-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        .positions-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .profit-cell.pos {
+            color: #00ff88;
+            font-weight: 700;
+        }
+
+        .profit-cell.neg {
+            color: #ff4d6d;
+            font-weight: 700;
+        }
+
+        .pair-badge {
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-weight: 700;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+        }
+
+        .direction-badge {
+            border-radius: 5px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .direction-badge.buy {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .direction-badge.sell {
+            background: rgba(255, 77, 109, 0.15);
+            color: #ff4d6d;
+            border: 1px solid #ff4d6d;
+        }
+
+        /* Signals Panel */
+        .signal-card {
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .signal-card.sell-signal {
+            background: rgba(255, 77, 109, 0.05);
+            border-color: rgba(255, 77, 109, 0.2);
+        }
+
+        .signal-icon {
+            font-size: 1.5rem;
+        }
+
+        .signal-body {
+            flex: 1;
+        }
+
+        .signal-body strong {
+            font-size: 0.95rem;
+        }
+
+        .signal-body p {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin: 0.2rem 0 0;
+        }
+
+        .signal-meta {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        .signal-status {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .signal-status.queued {
+            background: rgba(255, 165, 0, 0.2);
+            color: orange;
+        }
+
+        .signal-status.executed {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        /* SL/TP Modify Modal */
+        .sltp-modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Equity Progress Bar */
+        .equity-bar-wrap {
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 99px;
+            height: 5px;
+            overflow: hidden;
+        }
+
+        .equity-bar {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.5s ease;
+        }
+
+        /* Bot Live Indicator */
+        .bot-live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            color: #00ff88;
+            font-weight: 600;
+            padding: 4px 12px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 99px;
+        }
+
+        .bot-live-indicator .pulse {
+            width: 7px;
+            height: 7px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.7)
+            }
+        }
+
+        @media (max-width: 900px) {
+            .trading-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <div class="client-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="logo-text">SoftiBridge</span>
+                <span class="tag">CLIENT</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-item active" data-view="overview">
+                    <span class="icon">👤</span> <span data-i18n="nav.overview">La Mia Licenza</span>
+                </a>
+                <a href="#trading" class="nav-item" data-view="trading">
+                    <span class="icon">📊</span> <span data-i18n="nav.trading">Trading Panel</span>
+                </a>
+                <a href="#signals" class="nav-item" data-view="signals">
+                    <span class="icon">📡</span> <span data-i18n="nav.signals">Segnali Live</span>
+                </a>
+                <a href="#positions" class="nav-item" data-view="positions">
+                    <span class="icon">📈</span> <span data-i18n="nav.positions">Posizioni Aperte</span>
+                </a>
+                <a href="#pending" class="nav-item" data-view="pending">
+                    <span class="icon">⏳</span> <span data-i18n="nav.pending">Ordini Pendenti</span>
+                </a>
+                <a href="#history" class="nav-item" data-view="history">
+                    <span class="icon">📜</span> <span data-i18n="nav.history">Storico</span>
+                </a>
+                <a href="#config" class="nav-item" data-view="config">
+                    <span class="icon">⚙️</span> <span data-i18n="nav.config">Config EA</span>
+                </a>
+                <a href="#downloads" class="nav-item" data-view="downloads">
+                    <span class="icon">📥</span> <span data-i18n="nav.downloads">Download</span>
+                </a>
+                <a href="#payments" class="nav-item" data-view="payments">
+                    <span class="icon">💳</span> <span data-i18n="nav.payments">Pagamenti</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:1rem;">
+                <select id="lang-switcher"
+                    style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px; padding:0.4rem; outline:none; font-family:inherit;">
+                    <option value="it" selected>🇮🇹 Italiano</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+                <div class="user-profile">
+                    <div class="avatar">M</div>
+                    <div class="profile-info">
+                        <span class="name">Marco Verdi</span>
+                        <span class="role">PRO User · SB-A9B2</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="view-title">La Mia Licenza</h1>
+                <div class="top-bar-actions" style="gap: 0.8rem; display:flex; align-items:center;">
+                    <div class="bot-live-indicator" id="bot-status-indicator">
+                        <span class="pulse"></span> BOT LIVE
+                    </div>
+                    <div class="license-status-badge">
+                        <span class="dot online"></span> Licenza: ATTIVA
+                    </div>
+                    <div class="security-badge"
+                        style="background: rgba(0,242,255,0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; border: 1px solid rgba(0,242,255,0.2); display: flex; align-items: center; gap: 5px;">
+                        🛡️ HMAC SECURED
+                    </div>
+                </div>
+            </header>
+
+            <div id="content-area" class="view-container">
+
+                <!-- Overview View -->
+                <section id="view-overview" class="view active">
+                    <div class="dashboard-grid">
+                        <div class="glass-card main-info">
+                            <h3>Dettagli Abbonamento</h3>
+                            <div class="info-row">
+                                <span class="label">License Key:</span>
+                                <span id="overview-license-key" class="value code">SB-A9B2</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Piano Attuale:</span>
+                                <span id="overview-tier-name" class="value highlight">PRO (Esecuzione Automatica)</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Scadenza:</span>
+                                <span id="overview-expiry" class="value">22 Marzo 2026</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Account Utilizzati:</span>
+                                <span id="overview-accounts-count" class="value">1 / 3</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Piattaforme Attive:</span>
+                                <span id="overview-active-platforms" class="value">MT4, MT5</span>
+                            </div>
+                            <button class="btn btn-secondary" style="margin-top: 1.5rem;"
+                                onclick="alert('Contatta il tuo Admin WL (Alpha Signals) su Telegram per upgrade o rinnovo.')">Rinnova
+                                o Fai Upgrade</button>
+                        </div>
+
+                        <div class="glass-card status-info">
+                            <h3>Stato EA Corrente</h3>
+                            <div class="ea-status-box">
+                                <div class="ea-stat">
+                                    <span class="label">Connessione MT4/5</span>
+                                    <span class="value success">CONNESSO</span>
+                                </div>
+                                <div class="ea-stat">
+                                    <span class="label">Heartbeat</span>
+                                    <span class="value" id="heartbeat-time">pochi secondi fa</span>
+                                </div>
+                                <div class="ea-stat">
+                                    <span class="label">Segnali Ricevuti Oggi</span>
+                                    <span class="value" style="color:#00ff88;">7</span>
+                                </div>
+                                <div class="ea-stat">
+                                    <span class="label">Posizioni Aperte</span>
+                                    <span class="value" style="color: var(--accent);">3</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;"
+                                onclick="switchView('trading')">📊 Apri Trading Panel</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Trading Panel View -->
+                <section id="view-trading" class="view">
+                    <div class="trading-grid">
+                        <div class="trade-stat">
+                            <span class="ts-label">💰 Balance</span>
+                            <span class="ts-value neutral" id="t-balance">$10,425.80</span>
+                            <span class="ts-sub">Account #87654321 (MT4)</span>
+                        </div>
+                        <div class="trade-stat">
+                            <span class="ts-label">📈 Equity</span>
+                            <span class="ts-value positive" id="t-equity">$10,612.30</span>
+                            <span class="ts-sub">Floating P&L: <strong style="color:#00ff88;">+$186.50</strong></span>
+                            <div class="equity-bar-wrap">
+                                <div class="equity-bar" id="eq-bar"
+                                    style="width:85%; background: linear-gradient(to right, #00ff88, #00d4aa);"></div>
+                            </div>
+                        </div>
+                        <div class="trade-stat">
+                            <span class="ts-label">⚠️ Drawdown (DD)</span>
+                            <span class="ts-value" id="t-dd" style="color: #ffb347;">-2.4%</span>
+                            <span class="ts-sub">Max DD giornaliero: -5%</span>
+                            <div class="equity-bar-wrap">
+                                <div class="equity-bar" id="dd-bar"
+                                    style="width:48%; background: linear-gradient(to right, #ffb347, #ff4d6d);"></div>
+                            </div>
+                        </div>
+                        <div class="trade-stat">
+                            <span class="ts-label">📊 Posizioni Aperte</span>
+                            <span class="ts-value neutral" id="t-open">3</span>
+                            <span class="ts-sub" id="t-pending-count">2 ordini pendenti</span>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="margin-bottom: 1.5rem;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+                            <h3>📈 Posizioni Aperte</h3>
+                            <button class="btn btn-sm"
+                                style="background: rgba(255,77,109,0.2); color:#ff4d6d; border:1px solid rgba(255,77,109,0.3);"
+                                onclick="closeAllPositions()">⛔ Chiudi Tutte</button>
+                        </div>
+                        <table class="positions-table" id="trading-positions-table"></table>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom:1.2rem;">⏳ Ordini Pendenti</h3>
+                        <table class="positions-table" id="trading-pending-table"></table>
+                    </div>
+                </section>
+
+                <!-- Signals Live View -->
+                <section id="view-signals" class="view">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3>📡 Feed Segnali — Bot Telegram Live</h3>
+                        <div class="bot-live-indicator"><span class="pulse"></span> LIVE</div>
+                    </div>
+                    <div class="glass-card" style="padding: 1rem; margin-bottom: 1rem;">
+                        <p style="font-size:0.8rem; color: var(--text-dim);">I segnali arrivano direttamente dal <strong
+                                style="color: var(--accent);">Bot Telegram SoftiBridge</strong> attraverso LITE B. L'EA
+                            esegue automaticamente. Puoi monitorare e bloccare l'esecuzione da qui.</p>
+                    </div>
+                    <div id="signals-feed"></div>
+                </section>
+
+                <!-- Positions View -->
+                <section id="view-positions" class="view">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3>📈 Posizioni Aperte a Mercato</h3>
+                        <button class="btn btn-sm"
+                            style="background: rgba(255,77,109,0.2); color:#ff4d6d; border:1px solid rgba(255,77,109,0.3);"
+                            onclick="closeAllPositions()">⛔ Chiudi Tutte</button>
+                    </div>
+                    <div class="glass-card">
+                        <table class="positions-table" id="positions-full-table"></table>
+                    </div>
+                </section>
+
+                <!-- Pending Orders View -->
+                <section id="view-pending" class="view">
+                    <h3 style="margin-bottom: 1.5rem;">⏳ Ordini Pendenti</h3>
+                    <div class="glass-card">
+                        <table class="positions-table" id="pending-full-table"></table>
+                    </div>
+                </section>
+
+                <!-- History View -->
+                <section id="view-history" class="view">
+                    <h3 style="margin-bottom: 1.5rem;">📜 Storico Operazioni</h3>
+                    <div class="glass-card">
+                        <table class="positions-table" id="history-table"></table>
+                    </div>
+                </section>
+
+                <!-- Config View -->
+                <section id="view-config" class="view">
+                    <div id="tiers-config-container">
+                        <!-- Content injected by app.js -->
+                    </div>
+                </section>
+
+                <!-- Downloads View -->
+                <section id="view-downloads" class="view">
+                    <div class="glass-card">
+                        <h3>Download</h3>
+                        <div class="download-list">
+                            <div class="download-item">
+                                <div class="ext-icon">EA</div>
+                                <div class="ext-details">
+                                    <span class="name">SoftiBridge EA v2.4 (MT4)</span>
+                                    <span class="meta">Ultimo aggiornamento: 2 giorni fa</span>
+                                </div>
+                                <a href="#" class="btn btn-outline"
+                                    onclick="alert('Download SoftiBridge_EA_v2.4_MT4.ex4 avviato...')">Download .ex4</a>
+                            </div>
+                            <div class="download-item">
+                                <div class="ext-icon">EA</div>
+                                <div class="ext-details">
+                                    <span class="name">SoftiBridge EA v2.4 (MT5)</span>
+                                    <span class="meta">Ultimo aggiornamento: 2 giorni fa</span>
+                                </div>
+                                <a href="#" class="btn btn-outline"
+                                    onclick="alert('Download SoftiBridge_EA_v2.4_MT5.ex5 avviato...')">Download .ex5</a>
+                            </div>
+                            <div class="download-item">
+                                <div class="ext-icon">PDF</div>
+                                <div class="ext-details">
+                                    <span class="name">Guida all'installazione (IT)</span>
+                                    <span class="meta">Manuale completo in formato PDF</span>
+                                </div>
+                                <a href="#" class="btn btn-outline" onclick="alert('Apertura guida PDF...')">Apri
+                                    Guida</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Payments View -->
+                <section id="view-payments" class="view">
+                    <div class="glass-card">
+                        <h3>Pagamenti</h3>
+                        <div class="download-list">
+                            <div class="download-item">
+                                <div class="ext-icon">€</div>
+                                <div class="ext-details">
+                                    <span class="name">Fatture e archivio pagamenti</span>
+                                    <span class="meta">Accedi con token API per vedere fatture, checkout Stripe e
+                                        pagamenti manuali.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════
+         ONBOARDING WIZARD MODAL
+         Si apre automaticamente se l'onboarding non è completo
+    ════════════════════════════════════════════════════════ -->
+    <div id="onboarding-wizard-overlay" class="modal-overlay" style="display:none; z-index:9999;">
+        <div class="modal glass" style="max-width:580px; width:95%; padding:2rem 2.5rem; position:relative;">
+
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <div>
+                    <h2 style="margin:0; font-size:1.4rem;">🚀 Configurazione Account</h2>
+                    <p style="margin:0.3rem 0 0; color:var(--text-dim); font-size:0.82rem;">Completa gli step per
+                        attivare il tuo trading automatizzato</p>
+                </div>
+                <button onclick="closeOnboardingWizard()"
+                    style="background:none; border:none; color:var(--text-dim); font-size:1.4rem; cursor:pointer; padding:0.2rem 0.5rem;">✕</button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom:1.8rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span style="font-size:0.75rem; color:var(--text-dim);">Progresso</span>
+                    <span id="wiz-progress-label" style="font-size:0.75rem; color:var(--accent); font-weight:700;">0 / 5
+                        completati</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.07); border-radius:99px; height:6px; overflow:hidden;">
+                    <div id="wiz-progress-bar"
+                        style="height:100%; background:linear-gradient(to right, #00f2ff, #00ff88); border-radius:99px; width:0%; transition:width 0.4s ease;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Indicators -->
+            <div id="wiz-steps-nav" style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Step Content Area -->
+            <div id="wiz-step-content" style="min-height:200px;">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; gap:1rem;">
+                <button id="wiz-btn-back" class="btn btn-secondary" onclick="wizardPrev()" style="display:none;">←
+                    Indietro</button>
+                <div style="flex:1"></div>
+                <button id="wiz-btn-skip" class="btn btn-secondary" onclick="wizardSkip()"
+                    style="font-size:0.8rem; color:var(--text-dim);">Salta per ora</button>
+                <button id="wiz-btn-next" class="btn btn-primary" onclick="wizardNext()">Avanti →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SL/TP Modify Modal -->
+    <div id="sltp-modal" class="modal-overlay" style="display:none;">
+        <div class="modal glass" style="max-width:420px;">
+            <h2 id="sltp-modal-title">⚙️ Modifica SL / TP</h2>
+            <p id="sltp-modal-pair" style="color:var(--accent); font-family:monospace; margin-bottom:1.5rem;"></p>
+            <div class="sltp-modal-grid">
+                <div class="form-group">
+                    <label>Stop Loss</label>
+                    <input type="number" id="sltp-sl-input" step="0.00001" placeholder="es. 1.2840">
+                </div>
+                <div class="form-group">
+                    <label>Take Profit</label>
+                    <input type="number" id="sltp-tp-input" step="0.00001" placeholder="es. 1.2960">
+                </div>
+            </div>
+            <div
+                style="background: rgba(255,165,0,0.08); border:1px solid rgba(255,165,0,0.2); border-radius:8px; padding: 0.8rem 1rem; margin-top:1rem; font-size:0.78rem; color:#ffb347;">
+                ⚠️ La modifica viene inviata all'EA via LITE B → MT4/MT5. Si applica entro 2-3 secondi.
+            </div>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn btn-secondary"
+                    onclick="document.getElementById('sltp-modal').style.display='none'">Annulla</button>
+                <button class="btn btn-primary" id="sltp-confirm-btn">✅ Applica Modifica</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="onboarding.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

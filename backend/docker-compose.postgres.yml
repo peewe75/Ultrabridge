@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: softibridge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: softibridge
+      POSTGRES_USER: softi_user
+      POSTGRES_PASSWORD: softi_pass
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softi_user -d softibridge"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - softibridge_pgdata:/var/lib/postgresql/data
+
+volumes:
+  softibridge_pgdata:

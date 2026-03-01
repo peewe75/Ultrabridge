@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoftiBridge | L'Ecosistema Definitivo per Segnali Trading</title>
+    <meta name="description"
+        content="Gestisci il tuo business di segnali trading su Telegram con SoftiBridge. Automazione MT4/MT5, gestione licenze e notifiche automatiche.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020510;
+            --bg2: #060d1f;
+            --accent-primary: #00f2ff;
+            --accent-secondary: #0055ff;
+            --accent-gold: #f5a623;
+            --text-main: #f0f4ff;
+            --text-dim: #7a8ba8;
+            --glass: rgba(8, 16, 40, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --card-hover: rgba(0, 242, 255, 0.05);
+            --green: #00e676;
+            --red: #ff4d6d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .logo {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 85, 255, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 242, 255, 0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 50% 30% at 10% 60%, rgba(123, 47, 255, 0.08) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Animated grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            padding: 1.5rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        .lang-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 0.3rem 0.5rem;
+            outline: none;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .lang-select option {
+            background: var(--bg);
+            color: var(--text-main);
+        }
+
+        .btn-cta-nav {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            color: #030712 !important;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.2);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            padding: 11rem 0 7rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 span {
+            display: block;
+            background: linear-gradient(135deg, #00f2ff 0%, #ffffff 50%, #7b5ea7 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Trust Stats Bar */
+        .trust-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem auto 0;
+            padding: 1.2rem 2.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            max-width: 700px;
+            flex-wrap: wrap;
+        }
+
+        .trust-stat {
+            text-align: center;
+        }
+
+        .trust-stat .num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #00f2ff, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .trust-stat .lbl {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 1.2rem 2.5rem;
+            border-radius: 16px;
+            color: #030712;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 242, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 1.2rem 2.5rem;
+            border-radius: 16px;
+            color: var(--text-main);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-primary);
+        }
+
+        /* --- Section Styling --- */
+        section {
+            padding: 8rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- Features --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            align-items: stretch;
+        }
+
+        .feature-box {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 3rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            align-content: start;
+        }
+
+        .feature-box:hover {
+            border-color: var(--accent-primary);
+            background: var(--card-hover);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 242, 255, 0.08) inset;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            background: rgba(0, 242, 255, 0.1);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 242, 255, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        }
+
+        .feature-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .feature-box p {
+            color: var(--text-dim);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* --- Pricing --- */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .price-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 3.5rem 2.5rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .price-card.popular {
+            background: linear-gradient(180deg, rgba(0, 114, 255, 0.1) 0%, rgba(3, 7, 18, 0.8) 100%);
+            border-color: var(--accent-primary);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .tag-popular {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-primary);
+            color: #030712;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .price-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-card .price-val {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 1.5rem 0;
+            color: #fff;
+        }
+
+        .price-card .price-val span {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .price-list {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .price-list li {
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-list li::before {
+            content: '✓';
+            color: var(--accent-primary);
+            font-weight: 800;
+        }
+
+        /* --- Extensions --- */
+        .ext-container {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 4rem;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .ext-item {
+            text-align: center;
+        }
+
+        .ext-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dim);
+        }
+
+        .ext-item .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 5rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        .dev-portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2rem;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .dev-portal-link:hover {
+            color: var(--accent-primary);
+            border-color: var(--glass-border);
+            background: rgba(0, 242, 255, 0.05);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 968px) {
+            nav .container {
+                flex-direction: column;
+                gap: 0.6rem;
+                align-items: center;
+            }
+
+            .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+                justify-content: center;
+            }
+
+            .hero {
+                padding: 9.5rem 0 6rem;
+            }
+
+            .hero h1 {
+                font-size: clamp(2.4rem, 7vw, 3.5rem);
+            }
+
+            .hero .hero-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: center;
+            }
+
+            .trust-bar {
+                padding: 1rem 1.2rem;
+                gap: 1.2rem;
+            }
+
+            .features-grid,
+            .advantage .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-box {
+                min-height: 0;
+                padding: 2rem 1.35rem;
+                border-radius: 24px;
+            }
+
+            .feature-icon {
+                width: 58px;
+                height: 58px;
+                border-radius: 16px;
+                font-size: 2rem;
+                margin-bottom: 1.1rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .price-card,
+            .price-card.popular {
+                transform: scale(1);
+                width: 100%;
+                max-width: 520px;
+                margin: 0 auto;
+            }
+
+            .demo-step {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 1rem;
+            }
+            nav {
+                padding: 1.1rem 0;
+            }
+            .hero {
+                padding: 8.5rem 0 5.5rem;
+            }
+            .trust-bar {
+                gap: 0.9rem;
+            }
+            .hero h1 {
+                letter-spacing: -1px;
+            }
+            .pricing-grid {
+                gap: 1.2rem;
+            }
+        }
+
+        /* --- Animations --- */
+        [data-reveal] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        [data-reveal].visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-glow"></div>
+
+    <nav>
+        <div class="container">
+            <div class="logo">SoftiBridge</div>
+            <ul class="nav-links">
+                <li><a href="#features" data-i18n="nav.features">Features</a></li>
+                <li><a href="#pricing" data-i18n="nav.pricing">Pricing</a></li>
+                <li><a href="#access-hub">Accesso</a></li>
+                <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
+                <li>
+                    <select id="lang-switcher" class="lang-select">
+                        <option value="it" selected>🇮🇹 IT</option>
+                        <option value="en">🇬🇧 EN</option>
+                        <option value="es">🇪🇸 ES</option>
+                    </select>
+                </li>
+                <li><a href="https://t.me/softi_bridge_bot" class="btn-cta-nav" data-i18n="nav.cta">Get Started</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div style="display:inline-flex; align-items:center; gap:0.6rem; background:rgba(0,242,255,0.08); border:1px solid rgba(0,242,255,0.2); border-radius:99px; padding:0.4rem 1.2rem; font-size:0.75rem; font-weight:700; letter-spacing:2px; color:var(--accent-primary); margin-bottom:2rem;"
+                data-reveal data-i18n="hero.badge">
+                🚀 L'ECOSISTEMA DEFINITIVO PER IL TRADING AUTOMATICO E B2B
+            </div>
+            <h1 data-reveal><span data-i18n="hero.title">Vendi Segnali Trading</span><br><span data-i18n="hero.title_span"
+                    style="color:var(--accent-primary);">Come un Professionista</span></h1>
+            <p data-reveal style="font-size:1.15rem;" data-i18n="hero.subtitle">Vuoi automatizzare i segnali del tuo
+                gruppo VIP o vuoi vendere le tue strategie a centinaia di clienti in modo scalabile? SoftiBridge ha la
+                soluzione per entrambi.</p>
+            <p data-reveal
+                style="color: #f5a623; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size:0.85rem;"
+                data-i18n="hero.launch">
+                🔥 LANCIO UFFICIALE: SCONTI ATTIVI PER I PRIMI 50 ISCRITTI
+            </p>
+            <div class="hero-buttons" data-reveal>
+                <a href="#pricing" class="btn-primary" data-i18n="hero.btn_primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.828.94z" />
+                    </svg>
+                    Sono un Trader (Uso Personale)
+                </a>
+                <a href="#admin-pricing" class="btn-secondary" data-i18n="hero.btn_secondary">🏢 Sono un Provider (Admin)</a>
+            </div>
+            <div class="trust-bar" data-reveal>
+                <div class="trust-stat">
+                    <div class="num">500+</div>
+                    <div class="lbl" data-i18n="hero.trust1">Trader Attivi</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="num">&lt;200ms</div>
+                    <div class="lbl" data-i18n="hero.trust2">Latenza Segnale</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="num">99.9%</div>
+                    <div class="lbl" data-i18n="hero.trust3">Uptime SLA</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="num">Multi</div>
+                    <div class="lbl" data-i18n="hero.trust4">Livello B2B</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="access-hub" style="padding-top: 1.5rem;">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-reveal>Area Registrazione e Accesso Dashboard</h2>
+                <p data-reveal>Registrazione pubblica solo per clienti. Admin e Super Admin accedono con credenziali gia assegnate.</p>
+            </div>
+            <div class="auth-hub-grid" data-reveal>
+                <div class="feature-box auth-box">
+                    <h3>Nuovo Cliente</h3>
+                    <p>Crea il tuo account CLIENT per entrare nella dashboard utente e gestire licenza, download e trading panel.</p>
+                    <div class="auth-form-grid">
+                        <input id="hub-register-email" type="email" placeholder="Email cliente" />
+                        <input id="hub-register-password" type="password" placeholder="Password (min 8 caratteri)" />
+                        <button id="hub-register-btn" class="btn-primary" type="button">Registrazione CLIENT</button>
+                    </div>
+                </div>
+                <div class="feature-box auth-box">
+                    <h3>Accesso Utenti Registrati</h3>
+                    <p>Login unico. Redirect automatico verso dashboard Client, Admin o Super Admin in base al ruolo.</p>
+                    <div class="auth-form-grid">
+                        <input id="hub-login-email" type="email" placeholder="Email registrata" />
+                        <input id="hub-login-password" type="password" placeholder="Password" />
+                        <button id="hub-login-btn" class="btn-primary" type="button">Accedi</button>
+                        <button id="hub-continue-btn" class="btn-secondary" type="button">Continua sessione esistente</button>
+                    </div>
+                </div>
+            </div>
+            <div id="hub-auth-status" class="auth-status" data-reveal>Pronto. Inserisci credenziali oppure continua una sessione esistente.</div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-reveal data-i18n="features.h2">Tutto quello che ti serve, già pronto</h2>
+                <p data-reveal data-i18n="features.p">SoftiBridge è il layer di controllo tra il tuo canale Telegram e i conti MetaTrader dei
+                    tuoi clienti. Segnale inviato = trade aperto, in automatico.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">🛰️</div>
+                    <h3 data-i18n="feat1.h3">Bridge MT4 & MT5</h3>
+                    <p data-i18n="feat1.p">Il nostro Bot riceve i segnali dal gruppo Telegram e li elabora istantaneamente mandandoli
+                        all'Expert Advisor del cliente. Latenza sotto i 200ms. Nessuna copia manuale, zero errori umani.
+                    </p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">🛡️</div>
+                    <h3 data-i18n="feat2.h3">Protezione Anti-Piracy</h3>
+                    <p data-i18n="feat2.p">Il tuo lavoro è prezioso. Il sistema HMAC e il Remote Kill Switch bloccano all'istante qualsiasi
+                        tentativo di furto o uso non autorizzato delle licenze.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">📢</div>
+                    <h3 data-i18n="feat3.h3">Reminder & Rinnovi Automatici</h3>
+                    <p data-i18n="feat3.p">Il bot invia reminder automatici a 7, 3 e 0 giorni prima della scadenza dell'abbonamento. Il
+                        processo è fluido e non perderai mai più un pagamento dai tuoi iscritti.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">⚡</div>
+                    <h3 data-i18n="feat4.h3">Licenza Attiva in 30 secondi</h3>
+                    <p data-i18n="feat4.p">Acquisto su Telegram ➔ Generazione Licenza ➔ Invio Credenziali ➔ EA Operativo. Il flow di
+                        attivazione è completato in autonomia sotto il minuto.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">🔄</div>
+                    <h3 data-i18n="feat5.h3">VPS Migration Automatica</h3>
+                    <p data-i18n="feat5.p">Se l'utente cambia server, il sistema invalida l'ID precedente e autorizza il nuovo hardware in
+                        automatico, azzerando i ticket di supporto.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <div class="feature-icon">📈</div>
+                    <h3 data-i18n="feat6.h3">Potenzialità di Scalabilità</h3>
+                    <p data-i18n="feat6.p">Parti da una singola sala Telegram e cresci fino a più gruppi, VPS e account gestiti con la stessa
+                        infrastruttura. SoftiBridge è pensato per evolvere con il tuo business.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <div
+                    style="display:inline-flex; align-items:center; gap:0.8rem; background: rgba(0,242,255,0.1); border: 1px solid rgba(0,242,255,0.4); border-radius: 99px; padding: 0.4rem 1.2rem; margin-bottom: 1rem; font-size:0.75rem; font-weight:800; letter-spacing:2px; color: var(--accent-primary);">
+                    <span data-i18n="pricing.user.badge">👤 PER I TRADER (USO PERSONALE)</span>
+                </div>
+                <h2 data-reveal data-i18n="pricing.user.h2">Non perdere più un segnale dalla tua sala di trading</h2>
+                <p data-reveal data-i18n="pricing.user.p">Acquista il Bot, collegalo alla tua MetaTrader e lascia che copi in automatico i segnali
+                    del tuo gruppo Telegram VIP. Scegli il piano in base a quanti conti e gruppi vuoi automatizzare.
+                </p>
+            </div>
+            <div class="pricing-grid">
+                <div class="price-card" data-reveal>
+                    <h3>BASIC</h3>
+                    <p>Per chi inizia a vendere segnali</p>
+                    <div class="price-val">€59<span>/mese</span></div>
+                    <ul class="price-list">
+                        <li>1 VPS / Installazione EA</li>
+                        <li>1 Gruppo Telegram gestito</li>
+                        <li>1 Account MT4 o MT5</li>
+                        <li>Reminder automatici D-7/D-3/D-0</li>
+                        <li>Supporto Standard</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC" id="buy-basic" data-i18n="pricing.basic.cta">Inizia con BASIC</a>
+                </div>
+                <div class="price-card popular" data-reveal>
+                    <div class="tag-popular">PIÙ SCELTO — CRESCITA</div>
+                    <h3>PRO</h3>
+                    <p>Per strutture in crescita con più clienti</p>
+                    <div class="price-val">€109<span>/mese</span></div>
+                    <ul class="price-list">
+                        <li><strong>3 VPS</strong> con Auto-Migration inclusa</li>
+                        <li><strong>3 Gruppi</strong> Telegram gestiti</li>
+                        <li><strong>3 Account</strong> MT4 + MT5 simultanei</li>
+                        <li>Supporto Prioritario H24</li>
+                        <li>Grace Period 48h in caso di errore</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO"
+                        id="buy-pro" data-i18n="pricing.pro.cta">Domina con PRO</a>
+                </div>
+                <div class="price-card" data-reveal>
+                    <h3>ENTERPRISE</h3>
+                    <p>Il Massimo delle Performance</p>
+                    <div class="price-val">€199<span>/30g</span></div>
+                    <ul class="price-list">
+                        <li><strong>10 Installazioni</strong> (Multi-VPS)</li>
+                        <li><strong>10 Gruppi</strong> Telegram</li>
+                        <li><strong>Account Illimitati</strong> (Logic-limit)</li>
+                        <li>White Label & Personalizzazione</li>
+                        <li>Top Priority Tech Support</li>
+                        <li>Emergency 24H Inclusa</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE" data-i18n="pricing.enterprise.cta">Vai ENTERPRISE</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="advantage" id="advantage" style="background: rgba(0, 242, 255, 0.03);">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-reveal data-i18n="adv.h2">Perché i Provider Scelgono SoftiBridge</h2>
+                <p data-reveal data-i18n="adv.p">Smetti di perdere clienti per problemi tecnici. Costruisci un business ricorrente e
+                    scalabile.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv1.h3">📈 +40% Retention Media</h3>
+                    <p data-i18n="adv1.p">I reminder automatici a D-7, D-3 e D-0 riportano i clienti al rinnovo prima che la licenza scada.
+                        Zero effort da parte tua.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv2.h3">🛡️ Zero Pirateria</h3>
+                    <p data-i18n="adv2.p">Sistema HMAC + Remote Kill Switch bloccano qualsiasi abuso. Il tuo bots e i tuoi segnali sono
+                        protetti anche quando dormi.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv3.h3">💰 Revenue Passivo su 3 Livelli</h3>
+                    <p data-i18n="adv3.p">Ogni Admin WL che crei porta un 20% automatico su ogni sua vendita. I suoi affiliati portano un
+                        ulteriore 10%. Il network lavora per te.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv4.h3">⚙️ Onboarding Cliente Guidato</h3>
+                    <p data-i18n="adv4.p">Dalla licenza al download EA fino al pagamento fattura: il cliente ha un flusso unico, chiaro e
+                        riduce richieste di supporto ripetitive.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv5.h3">🧾 Fatture & Pagamenti Centralizzati</h3>
+                    <p data-i18n="adv5.p">Gestisci Stripe, bonifico e USDT TRON nello stesso pannello con verifica manuale, PDF fatture e
+                        storico pagamenti tracciato.</p>
+                </div>
+                <div class="feature-box" data-reveal>
+                    <h3 data-i18n="adv6.h3">📡 Controllo Operativo End-to-End</h3>
+                    <p data-i18n="adv6.p">Segnali, licenze, bridge EA, notifiche Telegram e audit log convivono nello stesso ecosistema per
+                        scalare senza caos operativo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .process-demo {
+            padding: 5.5rem 0;
+            background: linear-gradient(180deg, rgba(0, 242, 255, 0.03), rgba(2, 5, 16, 0));
+        }
+
+        .process-layout {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 1.25rem;
+            align-items: stretch;
+            min-width: 0;
+        }
+
+        .glass-panel {
+            background: rgba(8, 16, 40, 0.55);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            min-width: 0;
+        }
+
+        .demo-walkthrough {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .demo-step {
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 0.9rem;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            min-width: 0;
+        }
+
+        .demo-step:last-child { border-bottom: none; }
+        .demo-step:hover, .demo-step.active { background: rgba(0, 242, 255, 0.06); }
+        .demo-step.done { background: rgba(0, 230, 118, 0.05); }
+
+        .demo-step-num {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: var(--text-main);
+            flex-shrink: 0;
+        }
+
+        .demo-step.active .demo-step-num { background: var(--accent-primary); color: #02111a; }
+        .demo-step.done .demo-step-num { background: var(--green); color: #02110a; }
+
+        .demo-step-content h4 { font-size: 0.92rem; margin-bottom: 0.2rem; }
+        .demo-step-content p { font-size: 0.78rem; color: var(--text-dim); }
+        .demo-step-content { min-width: 0; }
+        .demo-step-content h4,
+        .demo-step-content p { overflow-wrap: anywhere; }
+
+        .demo-screen {
+            padding: 1rem 1.1rem;
+            min-height: 220px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+            color: var(--accent-primary);
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .demo-screen .line { opacity: 0.25; transition: opacity 0.25s ease; }
+        .demo-screen .line.show { opacity: 1; }
+
+        .admin-sales {
+            padding: 6rem 0 5.5rem;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255, 166, 0, 0.06), transparent 55%),
+                radial-gradient(circle at 90% 15%, rgba(0, 242, 255, 0.05), transparent 60%),
+                rgba(0, 242, 255, 0.02);
+            border-top: 1px solid rgba(0, 242, 255, 0.12);
+        }
+
+        .admin-hero {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+            min-width: 0;
+        }
+
+        .admin-summary-card {
+            padding: 1.2rem;
+            min-width: 0;
+        }
+
+        .admin-summary-card h3 {
+            font-size: 1.05rem;
+            margin-bottom: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+
+        .admin-split-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .split-row {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: 0.7rem;
+            align-items: center;
+            padding: 0.7rem 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .split-row strong { font-size: 0.8rem; letter-spacing: 0.5px; }
+        .split-row span { color: var(--text-dim); font-size: 0.78rem; }
+        .split-pill {
+            font-weight: 800;
+            font-size: 0.8rem;
+            color: #02141a;
+            padding: 0.3rem 0.65rem;
+            border-radius: 999px;
+            background: var(--accent-primary);
+        }
+
+        .admin-super-card {
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.9rem;
+            min-width: 0;
+        }
+
+        .admin-super-kpi {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .admin-super-kpi .kpi {
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 0.9rem;
+        }
+
+        .admin-super-kpi .kpi .n {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .admin-super-kpi .kpi .l {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+        }
+
+        .admin-checklist {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.65rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .admin-check-item {
+            display: flex;
+            gap: 0.55rem;
+            align-items: flex-start;
+            padding: 0.75rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.84rem;
+        }
+
+        .admin-check-item b {
+            color: var(--accent-primary);
+            min-width: 18px;
+        }
+
+        .admin-pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .admin-price-card {
+            background: rgba(8, 16, 40, 0.6);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 18px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            transition: transform 0.25s ease, border-color 0.25s ease;
+            min-width: 0;
+        }
+
+        .admin-price-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,242,255,0.22);
+        }
+
+        .admin-price-card.featured {
+            border-color: rgba(0,242,255,0.28);
+            box-shadow: 0 0 0 1px rgba(0,242,255,0.08) inset;
+            background: linear-gradient(180deg, rgba(0,242,255,0.06), rgba(8, 16, 40, 0.62));
+        }
+
+        .admin-card-badge {
+            display: inline-flex;
+            width: fit-content;
+            margin-bottom: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+        }
+
+        .admin-price-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .admin-plan-sub {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .admin-price-main {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+
+        .admin-price-main span {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .admin-recurring {
+            color: var(--accent-primary);
+            font-weight: 700;
+            font-size: 0.82rem;
+            margin-bottom: 1rem;
+        }
+
+        .admin-price-card .price-list {
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+
+        .admin-price-card .buy-btn {
+            margin-top: auto;
+            text-align: center;
+            width: 100%;
+            justify-content: center;
+        }
+
+        @media (max-width: 968px) {
+            .process-layout,
+            .admin-hero {
+                grid-template-columns: 1fr;
+            }
+            .admin-checklist {
+                grid-template-columns: 1fr;
+            }
+            .admin-pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .admin-price-card {
+                max-width: 560px;
+                margin: 0 auto;
+                width: 100%;
+            }
+            .split-row {
+                grid-template-columns: 1fr;
+                align-items: flex-start;
+            }
+            .admin-super-kpi {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .admin-super-kpi {
+                grid-template-columns: 1fr;
+            }
+            .process-demo,
+            .admin-sales {
+                padding: 4.5rem 0;
+            }
+            .demo-screen {
+                font-size: 0.76rem;
+                padding: 0.85rem;
+            }
+            .admin-price-card {
+                padding: 1rem;
+                border-radius: 16px;
+            }
+        }
+    </style>
+
+    <section class="process-demo" id="demo-flow">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-reveal data-i18n="demo.h2">Come gira davvero il sistema (demo operativa)</h2>
+                <p data-reveal data-i18n="demo.p">Dalla landing al bot Telegram, fino all'EA e al revenue split del network: un flusso unico,
+                    verificabile e vendibile.</p>
+            </div>
+            <div class="process-layout">
+                <div class="glass-panel demo-walkthrough" id="demo-walkthrough">
+                    <div class="demo-step active" data-step="0" onclick="goDemoStep(0)">
+                        <div class="demo-step-num">1</div>
+                        <div class="demo-step-content">
+                            <h4 data-i18n="demo.step1.h4">Acquisto piano da Landing</h4>
+                            <p data-i18n="demo.step1.p">L'utente sceglie il piano e avvia il checkout (backend-first, fallback demo se API offline).</p>
+                        </div>
+                    </div>
+                    <div class="demo-step" data-step="1" onclick="goDemoStep(1)">
+                        <div class="demo-step-num">2</div>
+                        <div class="demo-step-content">
+                            <h4 data-i18n="demo.step2.h4">Provisioning licenza e accesso</h4>
+                            <p data-i18n="demo.step2.p">Licenza generata, cliente registrato, dashboard e download EA pronti.</p>
+                        </div>
+                    </div>
+                    <div class="demo-step" data-step="2" onclick="goDemoStep(2)">
+                        <div class="demo-step-num">3</div>
+                        <div class="demo-step-content">
+                            <h4 data-i18n="demo.step3.h4">Bridge EA / MT4-MT5</h4>
+                            <p data-i18n="demo.step3.p">Il bridge sincronizza queue, heartbeat e stato installazione tra backend e terminale.</p>
+                        </div>
+                    </div>
+                    <div class="demo-step" data-step="3" onclick="goDemoStep(3)">
+                        <div class="demo-step-num">4</div>
+                        <div class="demo-step-content">
+                            <h4 data-i18n="demo.step4.h4">Operativita' cliente da panel</h4>
+                            <p data-i18n="demo.step4.p">SL/TP, close, cancel e monitoraggio trading inviati al bridge dal pannello client.</p>
+                        </div>
+                    </div>
+                    <div class="demo-step" data-step="4" onclick="goDemoStep(4)">
+                        <div class="demo-step-num">5</div>
+                        <div class="demo-step-content">
+                            <h4 data-i18n="demo.step5.h4">Revenue split e billing network</h4>
+                            <p data-i18n="demo.step5.p">L0/L1/L2, fatture, bonifici/USDT/Stripe e verifiche manuali nello stesso ecosistema.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-screen" id="demo-screen">
+                    <span class="line show" id="dl-0" data-i18n="demo.line1">&gt; [LANDING] Checkout request created for tier=PRO ...</span>
+                    <span class="line" id="dl-1" data-i18n="demo.line2">&gt; [BACKEND] License + client dashboard provisioned ... OK</span>
+                    <span class="line" id="dl-2" data-i18n="demo.line3">&gt; [BRIDGE] MT4/MT5 heartbeat + state sync active ... OK</span>
+                    <span class="line" id="dl-3" data-i18n="demo.line4">&gt; [CLIENT] SET_SLTP / CLOSE / CANCEL command queued ... OK</span>
+                    <span class="line" id="dl-4" data-i18n="demo.line5">&gt; [BILLING] L0/L1/L2 split + invoice/payment workflow ... OK</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let demoInterval;
+        function goDemoStep(n) {
+            clearInterval(demoInterval);
+            document.querySelectorAll('.demo-step').forEach((s, i) => {
+                s.classList.toggle('active', i === n);
+                s.classList.toggle('done', i < n);
+                const nEl = s.querySelector('.demo-step-num');
+                if (nEl) nEl.textContent = i < n ? 'OK' : String(i + 1);
+            });
+            document.querySelectorAll('.demo-screen .line').forEach((l, i) => {
+                l.classList.toggle('show', i <= n);
+            });
+        }
+        function demo_autoplay() {
+            clearInterval(demoInterval);
+            let step = 0;
+            demoInterval = setInterval(() => {
+                goDemoStep(step);
+                step = (step + 1) % 5;
+            }, 2200);
+        }
+        demo_autoplay();
+    </script>
+
+    <section class="admin-sales" id="admin-pricing">
+        <div class="container">
+            <div class="section-header">
+                <div style="display:inline-flex;align-items:center;gap:0.6rem;padding:0.4rem 1rem;border-radius:999px;background:rgba(255,166,0,0.08);border:1px solid rgba(255,166,0,0.22);color:#ffb45d;font-size:0.75rem;font-weight:800;letter-spacing:1.4px;">
+                    <span data-i18n="admin.badge">PER PROVIDER DI SEGNALI E ADMIN</span>
+                </div>
+                <h2 data-reveal data-i18n="admin.h2">Diventa Admin White Label del tuo Network</h2>
+                <p data-reveal data-i18n="admin.p">Gestisci clienti, licenze, rinnovi, pagamenti manuali e fatture in un pannello unificato.
+                    Crea affiliati e scala la sala segnali con struttura commerciale vera.</p>
+            </div>
+
+            <div class="admin-hero">
+                <div class="glass-panel admin-summary-card" data-reveal>
+                    <h3 data-i18n="admin.structure.h3">Struttura commerciale multi-livello (L0 / L1 / L2)</h3>
+                    <div class="admin-split-grid">
+                        <div class="split-row">
+                            <strong data-i18n="admin.l0.title">L0 SUPER ADMIN</strong>
+                            <span data-i18n="admin.l0.desc">Controllo globale rete, fee policy, licenze master e supervisione billing.</span>
+                            <span class="split-pill">20%</span>
+                        </div>
+                        <div class="split-row">
+                            <strong data-i18n="admin.l1.title">L1 ADMIN WL</strong>
+                            <span data-i18n="admin.l1.desc">Vende ai clienti finali, gestisce CRM, licenze, fatture e supporto operativo.</span>
+                            <span class="split-pill" style="background:#8b5cf6;color:#f5f3ff;">60-70%</span>
+                        </div>
+                        <div class="split-row">
+                            <strong data-i18n="admin.l2.title">L2 AFFILIATI</strong>
+                            <span data-i18n="admin.l2.desc">Referral tracciati con codici dedicati, fee maturate e payout verificabili.</span>
+                            <span class="split-pill" style="background:#22c55e;color:#052e16;">8-12%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel admin-super-card" data-reveal>
+                    <div>
+                        <h3 data-i18n="admin.why.h3">Perche' vende meglio di una semplice sala Telegram</h3>
+                        <div class="admin-checklist">
+                            <div class="admin-check-item"><b>1</b><span data-i18n="admin.why.1">Licenze e accessi tracciati (anti-condivisione)</span></div>
+                            <div class="admin-check-item"><b>2</b><span data-i18n="admin.why.2">Fatture + pagamenti Stripe/Bonifico/USDT nello stesso flusso</span></div>
+                            <div class="admin-check-item"><b>3</b><span data-i18n="admin.why.3">Area client self-service con download e stato licenza</span></div>
+                            <div class="admin-check-item"><b>4</b><span data-i18n="admin.why.4">Gestione affiliati e fee payout con audit log</span></div>
+                            <div class="admin-check-item"><b>5</b><span data-i18n="admin.why.5">Bridge EA / MT4-MT5 e controllo operativo centralizzato</span></div>
+                            <div class="admin-check-item"><b>6</b><span data-i18n="admin.why.6">Scalabilita' da singolo provider a network multi-brand</span></div>
+                        </div>
+                    </div>
+                    <div class="admin-super-kpi">
+                        <div class="kpi">
+                            <div class="n">L0</div>
+                            <div class="l">Super Admin Control</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="n">L1</div>
+                            <div class="l">White Label Admin</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="n">L2</div>
+                            <div class="l">Affiliate Network</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="n">CRM</div>
+                            <div class="l">Licenze + Billing + Logs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-pricing-grid" data-reveal>
+                <div class="admin-price-card">
+                    <span class="admin-card-badge">STARTER WL</span>
+                    <h3>STARTER</h3>
+                    <div class="admin-plan-sub" data-i18n="admin.starter.sub">Fino a 100 clienti attivi</div>
+                    <div class="admin-price-main">EUR 490 <span>setup</span></div>
+                    <div class="admin-recurring" data-i18n="admin.starter.recurring">+ EUR 90 / mese</div>
+                    <ul class="price-list">
+                        <li data-i18n="admin.starter.f1">100 licenze client attivabili</li>
+                        <li data-i18n="admin.starter.f2">Admin web panel dedicato</li>
+                        <li data-i18n="admin.starter.f3">Branding white-label base</li>
+                        <li data-i18n="admin.starter.f4">Bot Telegram operativo</li>
+                        <li data-i18n="admin.starter.f5">Affiliati L2 fino a 5</li>
+                        <li data-i18n="admin.starter.f6">Billing/fatture centralizzate</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC" data-i18n="admin.starter.cta">Inizia con STARTER</a>
+                </div>
+
+                <div class="admin-price-card featured">
+                    <span class="admin-card-badge">PIU' RICHIESTO</span>
+                    <h3>GROWTH</h3>
+                    <div class="admin-plan-sub" data-i18n="admin.growth.sub">Fino a 500 clienti + rete affiliati</div>
+                    <div class="admin-price-main">EUR 990 <span>setup</span></div>
+                    <div class="admin-recurring" data-i18n="admin.growth.recurring">+ EUR 190 / mese</div>
+                    <ul class="price-list">
+                        <li data-i18n="admin.growth.f1">500 licenze client attivabili</li>
+                        <li data-i18n="admin.growth.f2">Reminder rinnovi e upsell</li>
+                        <li data-i18n="admin.growth.f3">Affiliati L2 fino a 20</li>
+                        <li data-i18n="admin.growth.f4">Analytics conversione/churn</li>
+                        <li data-i18n="admin.growth.f5">Backup database e audit esteso</li>
+                        <li data-i18n="admin.growth.f6">Priorita' supporto operativa</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO" data-i18n="admin.growth.cta">Domina con GROWTH</a>
+                </div>
+
+                <div class="admin-price-card">
+                    <span class="admin-card-badge">SUPER ADMIN / ENTERPRISE</span>
+                    <h3>ENTERPRISE</h3>
+                    <div class="admin-plan-sub" data-i18n="admin.enterprise.sub">1000+ clienti / multi-brand / struttura L0-L1-L2</div>
+                    <div class="admin-price-main">EUR 1.990 <span>setup</span></div>
+                    <div class="admin-recurring" data-i18n="admin.enterprise.recurring">+ EUR 390 / mese</div>
+                    <ul class="price-list">
+                        <li data-i18n="admin.enterprise.f1">Licenze e nodi scalabili (1000+)</li>
+                        <li data-i18n="admin.enterprise.f2">Gestione multi-brand e multi-admin WL</li>
+                        <li data-i18n="admin.enterprise.f3">Affiliati L2 illimitati</li>
+                        <li data-i18n="admin.enterprise.f4">API/integrazioni e webhook estesi</li>
+                        <li data-i18n="admin.enterprise.f5">SLA prioritaria e supporto dedicato</li>
+                        <li data-i18n="admin.enterprise.f6">Base ideale per ruolo Super Admin</li>
+                    </ul>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE" data-i18n="admin.enterprise.cta">Vai ENTERPRISE</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="logo" style="margin-bottom: 2.5rem; display: block;">SoftiBridge</div>
+            <div class="footer-links">
+                <a href="#" data-i18n="footer.privacy"
+                    onclick="alert('Informativa Privacy & GDPR: SoftiBridge cripta tutti i dati utente. I log di trading sono anonimizzati e non condivisi con terze parti.')">Privacy
+                    & GDPR</a>
+                <a href="#" data-i18n="footer.terms"
+                    onclick="alert('Termini di Servizio: L\'abbonamento si rinnova automaticamente. La revoca immediata è garantita in caso di abuso delle quote di installazione.')">Termini
+                    Legali</a>
+                <a href="https://t.me/softi_bridge_bot" data-i18n="footer.support">Supporto Tecnico</a>
+                <a href="#" data-i18n="footer.affiliate">Programma Affiliazione</a>
+            </div>
+            <div class="legacy-disclaimer"
+                style="max-width: 900px; margin: 3rem auto; font-size: 0.75rem; color: var(--text-dim); opacity: 0.6; text-align: justify; border-top: 1px solid var(--glass-border); padding-top: 2rem; line-height: 1.5;">
+                <strong>DISCLAIMER LEGALE LEGACY & RISCHIO:</strong> Il trading nei mercati finanziari, inclusi Forex,
+                Indici e Materie Prime, comporta un elevato livello di rischio e può non essere adatto a tutti gli
+                investitori. L'elevato grado di leva finanziaria può operare a tuo favore così come contro di te.
+                SoftiBridge è una piattaforma di pura infrastruttura tecnologica e non agisce come consulente
+                finanziario né come broker. L'utente accetta che l'utilizzo degli Expert Advisor e delle automazioni
+                avvenga sotto la propria totale responsabilità. Eventuali performance passate non sono garanzia di
+                risultati futuri. Prima di decidere di investire, dovresti considerare attentamente i tuoi obiettivi di
+                investimento, il tuo livello di esperienza e la tua propensione al rischio. SoftiBridge declina ogni
+                responsabilità per perdite di capitale derivanti dall'utilizzo del software.
+            </div>
+            <p style="color: var(--text-dim); font-size: 0.85rem;" data-i18n="footer.copy" data-i18n-mode="html">&copy; 2026 Softi Trading (L0-Global Control). Tutti
+                i diritti riservati. <br> Powered by SoftiBridge Antigravity Ecosystem.</p>
+        </div>
+    </footer>
+
+    <style>
+        /* Landing polish / anti-overlap responsive overrides */
+        .section-header { max-width: 980px; margin-inline: auto; }
+        .pricing-grid { align-items: stretch; }
+        .price-card { height: 100%; display: flex; flex-direction: column; }
+        .price-card .price-list { flex: 1; }
+        .features-grid, .pricing-grid, .admin-pricing-grid, .process-layout, .admin-hero { min-width: 0; }
+        .feature-box, .price-card, .admin-price-card, .split-row { min-width: 0; }
+        .feature-box h3, .feature-box p, .price-card h3, .price-list li, .split-row span { overflow-wrap: anywhere; }
+        .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.9rem 1.4rem; }
+        .footer-links a { white-space: nowrap; }
+        .hero-buttons { display: flex; gap: 0.9rem; flex-wrap: wrap; justify-content: center; }
+        .hero-buttons a { text-align: center; }
+        .trust-bar { display: grid; grid-template-columns: repeat(4, minmax(120px,1fr)); gap: 0.8rem; }
+        .auth-hub-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .auth-box { border-color: rgba(0, 242, 255, 0.2); }
+        .auth-form-grid { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+        .auth-form-grid input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+            border-radius: 10px;
+            padding: 0.75rem 0.8rem;
+            font-family: inherit;
+            outline: none;
+        }
+        .auth-status {
+            margin-top: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-dim);
+            font-size: 0.86rem;
+        }
+        .trust-stat { min-width: 0; }
+        #admin-pricing .pricing-grid { align-items: stretch; }
+        #admin-pricing .price-card { min-height: 100%; }
+        @media (max-width: 1100px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+            .trust-bar { grid-template-columns: repeat(2, minmax(120px,1fr)); }
+            .admin-hero { gap: 1rem; }
+            .auth-hub-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 760px) {
+            .hero { padding-top: 7.5rem; }
+            .hero h1 { font-size: 2.1rem !important; line-height: 1.08; }
+            .hero p { font-size: 1rem !important; }
+            .hero-buttons { flex-direction: column; align-items: stretch; }
+            .hero-buttons .btn-primary, .hero-buttons .btn-secondary { width: 100%; justify-content: center; }
+            .trust-bar { grid-template-columns: 1fr 1fr; }
+            .container { padding-left: 1rem; padding-right: 1rem; }
+            .demo-step { flex-direction: column; gap: 0.6rem; }
+            .demo-step-num { flex-shrink: 0; }
+            .admin-summary-card, .admin-super-card { padding: 1rem; }
+            .admin-summary-card h3, .admin-super-card h3 { line-height: 1.2; }
+            .footer-links { flex-direction: column; align-items: center; }
+        }
+    </style>
+
+    <script>
+        // Reveal Animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+
+        // Nav effect on scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.style.padding = '1rem 0';
+                nav.style.background = 'rgba(3, 7, 18, 0.95)';
+            } else {
+                nav.style.padding = '1.5rem 0';
+                nav.style.background = 'rgba(3, 7, 18, 0.8)';
+            }
+        });
+
+        function getLandingApiBase() {
+            const fromQuery = new URLSearchParams(window.location.search).get('api');
+            const fromStorage = localStorage.getItem('softibridge_api_base');
+            const originApi = `${window.location.origin}/api`;
+            let base = (fromQuery || fromStorage || originApi || '').trim();
+            if (!base) base = 'http://127.0.0.1:8000/api';
+            if (!/^https?:\/\//i.test(base)) {
+                base = base.startsWith('/') ? `${window.location.origin}${base}` : `http://${base}`;
+            }
+            base = base.replace(/\/+$/, '');
+            if (!/\/api$/i.test(base)) base += '/api';
+            return base;
+        }
+
+        async function createCheckoutSessionFromBackend(tier, email) {
+            const locale = (navigator.language || 'it-IT').toUpperCase();
+            const countryGuess = locale.includes('-') ? locale.split('-')[1] : 'IT';
+            const apiBase = getLandingApiBase();
+            localStorage.setItem('softibridge_api_base', apiBase);
+            const res = await fetch(`${apiBase}/public/checkout/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plan_code: tier,
+                    email,
+                    country_code: countryGuess,
+                    language: (locale.split('-')[0] || 'it').toLowerCase()
+                })
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err || 'Checkout API error');
+            }
+            return res.json();
+        }
+
+        function dashboardRouteByRole(role) {
+            if (role === 'CLIENT') return '/dashboard/client/';
+            if (role === 'ADMIN_WL') return '/dashboard/admin/';
+            if (role === 'SUPER_ADMIN') return '/dashboard/super-admin/';
+            return '/landing/';
+        }
+
+        function setAuthStatus(message, kind = 'info') {
+            const el = document.getElementById('hub-auth-status');
+            if (!el) return;
+            const palette = {
+                info: { border: 'rgba(255,255,255,0.12)', bg: 'rgba(255,255,255,0.03)', color: 'var(--text-dim)' },
+                ok: { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.08)', color: '#34d399' },
+                err: { border: 'rgba(239,68,68,0.35)', bg: 'rgba(239,68,68,0.08)', color: '#fda4af' }
+            };
+            const p = palette[kind] || palette.info;
+            el.style.borderColor = p.border;
+            el.style.background = p.bg;
+            el.style.color = p.color;
+            el.textContent = message;
+        }
+
+        function persistRoleToken(role, token, apiBase) {
+            localStorage.setItem('softibridge_api_base', apiBase);
+            if (role === 'CLIENT') {
+                localStorage.setItem('softibridge_client_token', token);
+                localStorage.setItem('softi_client_preview_token', token);
+                localStorage.removeItem('softibridge_admin_token');
+                localStorage.removeItem('softi_admin_preview_token');
+                localStorage.removeItem('softibridge_admin_lite_token');
+                return;
+            }
+            if (role === 'ADMIN_WL' || role === 'SUPER_ADMIN') {
+                localStorage.setItem('softibridge_admin_token', token);
+                localStorage.setItem('softi_admin_preview_token', token);
+                localStorage.setItem('softibridge_admin_lite_token', token);
+                localStorage.removeItem('softibridge_client_token');
+                localStorage.removeItem('softi_client_preview_token');
+            }
+        }
+
+        async function authApi(path, payload, token) {
+            const apiBase = getLandingApiBase();
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const res = await fetch(`${apiBase}${path}`, {
+                method: 'POST',
+                headers,
+                body: payload ? JSON.stringify(payload) : undefined,
+            });
+            const text = await res.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch { data = { detail: text || 'Errore sconosciuto' }; }
+            if (!res.ok) throw new Error(data.detail || data.error || text || `HTTP ${res.status}`);
+            return data;
+        }
+
+        async function fetchMe(token) {
+            const apiBase = getLandingApiBase();
+            const res = await fetch(`${apiBase}/auth/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const text = await res.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch { data = { detail: text || 'Errore sconosciuto' }; }
+            if (!res.ok) throw new Error(data.detail || data.error || text || `HTTP ${res.status}`);
+            return data;
+        }
+
+        async function loginAndRoute(email, password) {
+            const apiBase = getLandingApiBase();
+            const tok = await authApi('/auth/login', { email, password });
+            const me = await fetchMe(tok.access_token);
+            persistRoleToken(me.role, tok.access_token, apiBase);
+            setAuthStatus(`Accesso OK: ${me.role}. Reindirizzamento in corso...`, 'ok');
+            window.location.href = dashboardRouteByRole(me.role);
+        }
+
+        document.getElementById('hub-register-btn')?.addEventListener('click', async () => {
+            const email = (document.getElementById('hub-register-email')?.value || '').trim();
+            const password = document.getElementById('hub-register-password')?.value || '';
+            if (!email || !password) {
+                setAuthStatus('Inserisci email e password per registrarti.', 'err');
+                return;
+            }
+            try {
+                setAuthStatus('Registrazione CLIENT in corso...', 'info');
+                await authApi('/auth/register', { email, password, role: 'CLIENT' });
+                await loginAndRoute(email, password);
+            } catch (err) {
+                setAuthStatus(`Registrazione fallita: ${err.message}`, 'err');
+            }
+        });
+
+        document.getElementById('hub-login-btn')?.addEventListener('click', async () => {
+            const email = (document.getElementById('hub-login-email')?.value || '').trim();
+            const password = document.getElementById('hub-login-password')?.value || '';
+            if (!email || !password) {
+                setAuthStatus('Inserisci email e password per accedere.', 'err');
+                return;
+            }
+            try {
+                setAuthStatus('Accesso in corso...', 'info');
+                await loginAndRoute(email, password);
+            } catch (err) {
+                setAuthStatus(`Login fallito: ${err.message}`, 'err');
+            }
+        });
+
+        document.getElementById('hub-continue-btn')?.addEventListener('click', async () => {
+            const token =
+                localStorage.getItem('softibridge_client_token') ||
+                localStorage.getItem('softibridge_admin_token') ||
+                localStorage.getItem('softi_client_preview_token') ||
+                localStorage.getItem('softi_admin_preview_token') ||
+                localStorage.getItem('softibridge_admin_lite_token');
+            if (!token) {
+                setAuthStatus('Nessuna sessione locale trovata.', 'err');
+                return;
+            }
+            try {
+                const me = await fetchMe(token);
+                persistRoleToken(me.role, token, getLandingApiBase());
+                setAuthStatus(`Sessione attiva rilevata (${me.role}). Reindirizzamento...`, 'ok');
+                window.location.href = dashboardRouteByRole(me.role);
+            } catch (err) {
+                setAuthStatus(`Sessione non valida: ${err.message}`, 'err');
+            }
+        });
+
+        // Ecosystem Logic (backend-first, demo fallback)
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tier = btn.getAttribute('data-tier');
+                const translator = window.softiI18n;
+                const email = prompt(translator ? translator.t('buy.prompt_email') : 'Inserisci la tua email per iniziare il checkout SoftiBridge:');
+                if (!email) return;
+
+                // Show simulated processing
+                btn.textContent = translator ? translator.t('buy.processing') : 'Processando...';
+                btn.style.opacity = '0.7';
+                btn.disabled = true;
+
+                createCheckoutSessionFromBackend(tier, email).then((data) => {
+                    btn.textContent = data.simulated
+                        ? (translator ? translator.t('buy.checkout_demo_ready') : 'Checkout Demo Pronto')
+                        : (translator ? translator.t('buy.checkout_ready') : 'Checkout Creato');
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                    if (data.checkout_url) {
+                        window.open(data.checkout_url, '_blank');
+                    }
+                    console.log(`[CHECKOUT] ${tier}`, data);
+                }).catch(() => {
+                    // Fallback demo if backend is not running
+                    setTimeout(() => {
+                        const discountMsg = "🎁 SCONTO APPLICATO: Hai risparmiato il 20% grazie all'offerta di lancio!";
+                        const title = translator ? translator.t('buy.backend_offline_title') : 'MODALITÀ DEMO';
+                        const backendMsg = translator ? translator.t('buy.demo_alert') : "Per il checkout reale avvia il backend FastAPI e imposta l'API URL corretto.";
+                        alert(`✅ ${title} [PIANO ${tier}]\n\n${discountMsg}\n\n${backendMsg}\n\nSimulazione:\n- Generazione Licenza HMAC\n- Configurazione installazione\n- Invio credenziali Telegram`);
+                        btn.textContent = translator ? translator.t('buy.demo_completed') : 'Demo Completata';
+                        btn.style.background = 'var(--success)';
+                        btn.disabled = false;
+                    }, 1200);
+                });
+            });
+        });
+
+        // Synergy Section Buttons
+        document.querySelectorAll('.synergy-content .btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const translator = window.softiI18n;
+                alert(translator ? translator.t('synergy.alert') : "Questa opzione applica lo sconto automatico del 20% sul totale.\nProcedi all'acquisto per attivare il bundle Bot + EA.");
+            });
+        });
+    </script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

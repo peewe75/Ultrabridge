@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoftiBridge Super Admin | Control Suite</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="logo-text">SoftiBridge</span>
+                <span class="tag">SUPER ADMIN</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">
+                    👑 LIVELLO SUPER ADMIN</div>
+                <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                    <span class="icon">📊</span> <span data-i18n="nav.dash">Dashboard</span>
+                </a>
+                <a href="#super-licenses" class="nav-item" data-view="super-licenses">
+                    <span class="icon">🎟️</span> <span>Licenze</span>
+                </a>
+                <a href="#super-invoices" class="nav-item" data-view="super-invoices">
+                    <span class="icon">🧾</span> <span>Fatture</span>
+                </a>
+                <a href="#super-admin-manage" class="nav-item" data-view="super-admin-manage">
+                    <span class="icon">🏢</span> <span>Gestione Admin</span>
+                </a>
+                <a href="#super-admin-billing" class="nav-item" data-view="super-admin-billing">
+                    <span class="icon">🧾</span> <span>Fatturazione Admin</span>
+                </a>
+                <a href="#super-admin-fee-report" class="nav-item" data-view="super-admin-fee-report">
+                    <span class="icon">💰</span> <span>Report Fee Admin</span>
+                </a>
+                <a href="#super-admin-payments" class="nav-item" data-view="super-admin-payments">
+                    <span class="icon">💳</span> <span>Pagamenti Admin</span>
+                </a>
+                <a href="#super-vps" class="nav-item" data-view="super-vps">
+                    <span class="icon">🖥️</span> <span data-i18n="nav.vps">VPS</span>
+                </a>
+                <a href="#super-admin-clients" class="nav-item" data-view="super-admin-clients">
+                    <span class="icon">👥</span> <span>Clienti per Admin</span>
+                </a>
+                <div class="nav-section-title nav-section-title--spaced">
+                    👨‍💼 SEZIONE ADMIN</div>
+                <a href="#admin-control" class="nav-item" data-view="admin-control">
+                    <span class="icon">🏢</span> <span>Controllo Admin</span>
+                </a>
+                <a href="#admin-register" class="nav-item" data-view="admin-register" data-nav-action="open-admin-registration">
+                    <span class="icon">➕</span> <span>Registra Admin</span>
+                </a>
+                <a href="#admin-clients" class="nav-item" data-view="admin-clients">
+                    <span class="icon">👥</span> <span>Clienti Admin</span>
+                </a>
+                <a href="#admin-payments" class="nav-item" data-view="admin-payments">
+                    <span class="icon">💸</span> <span>Pagamenti Bot & Fee</span>
+                </a>
+
+                <div class="nav-section-title nav-section-title--spaced">
+                    🤝 AFFILIAZIONE CLIENTI SEMPLICI</div>
+                <a href="#aff-clients" class="nav-item" data-view="aff-clients">
+                    <span class="icon">📣</span> <span>Affiliazione Clienti</span>
+                </a>
+                <a href="#aff-client-fee" class="nav-item" data-view="aff-client-fee" data-nav-action="focus-new-client-fee">
+                    <span class="icon">🪙</span> <span>Fee Nuovo Cliente</span>
+                </a>
+
+                <div class="nav-section-title nav-section-title--spaced">
+                    ⚙️ SISTEMA</div>
+                <a href="#fee-rules" class="nav-item" data-view="fee-rules">
+                    <span class="icon">🧮</span> <span>Fee Rules</span>
+                </a>
+                <a href="#logs" class="nav-item" data-view="logs">
+                    <span class="icon">📜</span> <span data-i18n="nav.logs">Logs</span>
+                </a>
+                <a href="#settings" class="nav-item" data-view="settings">
+                    <span class="icon">⚙️</span> <span data-i18n="nav.set">Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-help">
+                <button class="btn btn-outline btn-full" id="start-tour-btn" data-i18n="nav.tour">🌟 Avvia Tour
+                    Guidato</button>
+            </div>
+            <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:1rem;">
+                <select id="lang-switcher"
+                    style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px; padding:0.4rem; outline:none; font-family:inherit;">
+                    <option value="it" selected>🇮🇹 Italiano</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+                <div class="admin-profile">
+                    <div class="avatar">MD</div>
+                    <div class="profile-info">
+                        <span class="name">Administrator</span>
+                        <span class="role">Superuser</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-bar-heading">
+                    <div id="view-scope-badge" class="view-scope-badge">SUPER ADMIN</div>
+                    <h1 id="view-title">Dashboard</h1>
+                    <div id="view-subtitle" class="view-subtitle">Controllo globale e analisi operativa</div>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="btn btn-secondary btn-sm" id="trigger-backup-btn">💾
+                        Backup Sistema</button>
+                    <button class="btn btn-primary" id="add-license-btn">+ Nuova Licenza</button>
+                    <div class="status-indicator">
+                        <span class="dot online"></span> API Cloud: Online
+                    </div>
+                </div>
+            </header>
+
+            <div id="content-area" class="view-container">
+                <!-- Dashboard View (Default) -->
+                <section id="view-dashboard" class="view active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Licenze Attive</span>
+                            <span class="stat-value">142</span>
+                            <span class="stat-trend positive">+12% vs last week</span>
+                            <span class="subline">Licenze con stato operativo attivo e heartbeat regolare.</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Clienti Online</span>
+                            <span class="stat-value">89</span>
+                            <span class="stat-trend">76.4% activity rate</span>
+                            <span class="subline">Clienti con bridge/EA attivi nelle ultime 24 ore.</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Entrate (30d)</span>
+                            <span class="stat-value">€4,290</span>
+                            <span class="stat-trend positive">€840 new upsells</span>
+                            <span class="subline">Totale commerciale aggregato su piani, rinnovi e setup.</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Alerts Sistema</span>
+                            <span class="stat-value">0</span>
+                            <span class="stat-trend neutral">All systems nominal</span>
+                            <span class="subline">Nessun alert critico su API, bridge, billing e notifiche.</span>
+                        </div>
+                    </div>
+
+                    <div class="workspace-split">
+                        <div class="chart-container glass-card glass">
+                            <div class="panel-title">
+                                <div>
+                                    <h3>Andamento Iscrizioni & Conversioni</h3>
+                                    <div class="sub">Panoramica trend commerciale L0 (ultimi 7 periodi)</div>
+                                </div>
+                                <span class="status-badge active">LIVE DEMO</span>
+                            </div>
+                            <div class="mock-chart">
+                                <div class="bar" style="height: 40%"></div>
+                                <div class="bar" style="height: 60%"></div>
+                                <div class="bar" style="height: 50%"></div>
+                                <div class="bar" style="height: 80%"></div>
+                                <div class="bar" style="height: 70%"></div>
+                                <div class="bar" style="height: 90%"></div>
+                                <div class="bar" style="height: 100%"></div>
+                            </div>
+                            <div class="mini-grid" style="margin-top:1rem;">
+                                <div class="mini-card">
+                                    <div class="lbl">MRR Stimato</div>
+                                    <div class="val">€6.9k</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="lbl">Churn Stimato</div>
+                                    <div class="val" style="color:#f59e0b;">4.2%</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="lbl">Renewal Rate</div>
+                                    <div class="val">82%</div>
+                                </div>
+                                <div class="mini-card">
+                                    <div class="lbl">ARPU</div>
+                                    <div class="val">€109</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="workspace-stack">
+                            <div class="glass-card">
+                                <div class="panel-title">
+                                    <h4>Controlli Rapidi L0</h4>
+                                    <span class="status-badge pending">OPERATIVO</span>
+                                </div>
+                                <div class="bullet-list">
+                                    <div class="item">Apri <strong>Revenue Ledger</strong> per verificare split e trend ricavi.</div>
+                                    <div class="item">Apri <strong>White Labels</strong> per brand, volume e configurazione L1.</div>
+                                    <div class="item">Apri <strong>Fatturazione Fee</strong> per emissione e gestione documenti.</div>
+                                    <div class="item">Apri <strong>Payout</strong> per approvazioni manuali e batch fee.</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card">
+                                <div class="panel-title">
+                                    <h4>Health Check Sistema</h4>
+                                    <div class="sub">Stato componenti principali</div>
+                                </div>
+                                <div class="mini-grid">
+                                    <div class="mini-card"><div class="lbl">API Core</div><div class="val" style="color:#34d399;">Online</div></div>
+                                    <div class="mini-card"><div class="lbl">Billing</div><div class="val" style="color:#34d399;">OK</div></div>
+                                    <div class="mini-card"><div class="lbl">Telegram</div><div class="val" style="color:#f59e0b;">Check</div></div>
+                                    <div class="mini-card"><div class="lbl">Bridge EA</div><div class="val" style="color:#34d399;">Sync</div></div>
+                                </div>
+                            </div>
+
+                            <div class="ops-callout">
+                                <div class="title">Uso professionale consigliato</div>
+                                <div class="desc">Usa la Dashboard solo come cabina di regia. Le operazioni dettagliate (revenue, white label, fee, fatture, payout, VPS) vanno gestite nelle sezioni dedicate per evitare errori e confusione.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Clients CRM View -->
+                <section id="view-clients" class="view">
+                    <div class="view-header"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div class="search-box glass"
+                            style="display: flex; gap: 0.8rem; padding: 0.8rem 1.5rem; border-radius: 12px; flex: 1; max-width: 400px;">
+                            <span class="icon">🔍</span>
+                            <input type="text" id="client-search" placeholder="Cerca nome, email, Telegram..."
+                                style="background: none; border: none; color: white; width: 100%; outline: none;">
+                        </div>
+                        <select id="client-admin-filter" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.03);">
+                            <option value="ALL">Admin: Tutti</option>
+                            <option value="UNASSIGNED">Senza Admin</option>
+                        </select>
+                        <button class="btn btn-primary" id="add-client-btn">+ Aggiungi Cliente</button>
+                    </div>
+                    <div class="stats-grid" style="margin-bottom: 2rem;">
+                        <div class="stat-card">
+                            <span class="stat-label">👥 Clienti Totali</span>
+                            <span class="stat-value" id="client-count">6</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">✅ Licenze Attive</span>
+                            <span class="stat-value" id="client-active">5</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">⚠️ In Scadenza (7gg)</span>
+                            <span class="stat-value" id="client-expiring">2</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">💶 MRR Clienti</span>
+                            <span class="stat-value" id="client-mrr">€654</span>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <table class="log-table" id="clients-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telegram</th>
+                                    <th>Email</th>
+                                    <th>Telefono</th>
+                                    <th>Licenza</th>
+                                    <th>Piano</th>
+                                    <th>Scadenza</th>
+                                    <th>Stato</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table-body">
+                                <!-- populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="glass-card" style="margin-top:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:.9rem;">
+                            <div>
+                                <h3 style="margin-bottom:.2rem;">Entitlement Download Cliente</h3>
+                                <p class="section-note" style="margin:0;">Super Admin puo' decidere automaticamente o manualmente quali file scarica ogni cliente, in base all'acquisto.</p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="refresh-client-download-policy-btn">🔄 Ricarica</button>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1.2fr .8fr; gap:10px; margin-bottom:.8rem;">
+                            <select id="client-download-policy-client" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.03); min-height:38px;">
+                                <option value="">Seleziona cliente...</option>
+                            </select>
+                            <select id="client-download-policy-mode" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.03); min-height:38px;">
+                                <option value="AUTO">AUTO (acquisto/licenza)</option>
+                                <option value="MANUAL">MANUAL (solo lista)</option>
+                            </select>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:.8rem;">
+                            <div>
+                                <label style="display:block; font-size:.78rem; color:var(--text-dim); margin-bottom:4px;">Manual Codes (csv)</label>
+                                <input id="client-download-policy-manual" type="text" placeholder="EA_MT4,EA_MT5,GUIDA_IT" style="width:100%; padding:.62rem .7rem; background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.12); color:white; border-radius:8px;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:.78rem; color:var(--text-dim); margin-bottom:4px;">Allow Extra Codes (csv)</label>
+                                <input id="client-download-policy-allow" type="text" placeholder="es. EA_BETA" style="width:100%; padding:.62rem .7rem; background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.12); color:white; border-radius:8px;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:.8rem;">
+                            <label style="display:block; font-size:.78rem; color:var(--text-dim); margin-bottom:4px;">Deny Codes (csv)</label>
+                            <input id="client-download-policy-deny" type="text" placeholder="es. EA_MT5" style="width:100%; padding:.62rem .7rem; background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.12); color:white; border-radius:8px;">
+                        </div>
+
+                        <div style="display:flex; gap:8px; margin-bottom:.8rem;">
+                            <button class="btn btn-primary btn-sm" id="save-client-download-policy-btn">💾 Salva Policy</button>
+                            <button class="btn btn-secondary btn-sm" id="load-client-download-policy-btn">📥 Carica Policy</button>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div>
+                                <div style="font-size:.78rem; color:var(--text-dim); margin-bottom:4px;">Codici abilitati (effettivi)</div>
+                                <div id="client-download-policy-allowed" class="section-note" style="margin:0; min-height:22px;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size:.78rem; color:var(--text-dim); margin-bottom:4px;">Codici disponibili nel sistema</div>
+                                <div id="client-download-policy-available" class="section-note" style="margin:0; min-height:22px;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Licenses View -->
+                <section id="view-licenses" class="view">
+                    <div class="view-header"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div class="search-box glass"
+                            style="display: flex; gap: 0.8rem; padding: 0.8rem 1.5rem; border-radius: 12px; flex: 1; max-width: 400px;">
+                            <span class="icon">🔍</span>
+                            <input type="text" placeholder="Cerca ID, Email o Account..."
+                                style="background: none; border: none; color: white; width: 100%; outline: none;">
+                        </div>
+                        <button class="btn btn-primary" id="open-modal-from-licenses-btn">+ Nuova Licenza</button>
+                    </div>
+
+                    <div class="glass-card" style="padding: 0; overflow: hidden;">
+                        <table class="log-table">
+                            <thead>
+                                <tr>
+                                    <th>License ID</th>
+                                    <th>Piano</th>
+                                    <th>Account MT4/5</th>
+                                    <th>VPS ID</th>
+                                    <th>Stato</th>
+                                    <th>Scadenza</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="licenses-table-body">
+                                <!-- Data will be injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Logs View -->
+                <section id="view-logs" class="view">
+                    <div class="log-controls glass"
+                        style="display: flex; gap: 1rem; align-items: center; padding: 1rem; margin-bottom: 2rem;">
+                        <span class="icon">🔍</span>
+                        <input type="text" placeholder="Filtra log..."
+                            style="background: none; border: none; color: white; flex: 1; outline: none;">
+                        <div class="status-indicator">
+                            <span class="dot online"></span> In tempo reale
+                        </div>
+                        <button class="btn btn-warning btn-sm" id="export-kill-btn" style="margin-left: auto;">☢️
+                            Esporta Kill List</button>
+                    </div>
+                    <div class="log-table-container">
+                        <table class="log-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Modulo</th>
+                                    <th>Stato</th>
+                                    <th>Dettagli Messaggi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="live-logs-body">
+                                <!-- Logs will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Report Fee Admin (Super Admin) -->
+                <section id="view-revenue" class="view">
+                    <div class="section-toolbar">
+                        <div class="group">
+                            <h2>Report Fee Admin WL</h2>
+                            <span class="status-badge active">Dati reali</span>
+                        </div>
+                        <div class="group">
+                            <button class="btn btn-secondary btn-sm" id="refresh-admin-fee-report-btn">🔄 Aggiorna</button>
+                            <button class="btn btn-secondary btn-sm" id="export-admin-fee-report-btn">📤 Export CSV</button>
+                        </div>
+                    </div>
+                    <p class="section-note" style="margin-bottom:1rem;">Report fee per Admin WL basato sui pagamenti clienti registrati nel backend. Questa vista mostra solo dati economici e split L0/L1/L2 per amministratore.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Totale Incassato Clienti</span>
+                            <span class="stat-value" id="admin-fee-total">€0</span>
+                            <span class="stat-trend positive" id="admin-fee-payments-count">0 pagamenti</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Quota L0 (Super Admin)</span>
+                            <span class="stat-value" id="admin-fee-l0">€0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Quota L1 (Admin WL)</span>
+                            <span class="stat-value" id="admin-fee-l1">€0</span>
+                            <span class="subline" id="admin-fee-admins-count">0 Admin WL</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Quota L2 (Affiliati)</span>
+                            <span class="stat-value" id="admin-fee-l2">€0</span>
+                            <span class="subline" id="admin-fee-clients-count">0 clienti unici</span>
+                        </div>
+                    </div>
+
+                    <div class="workspace-split">
+                        <div class="glass-card table-shell" style="margin-top: 0;">
+                            <div class="panel-title">
+                                <h3>Riepilogo Fee per Admin WL</h3>
+                                <div class="sub">Aggregazione dei pagamenti clienti per amministratore con split L0/L1/L2</div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ultimo pagamento</th>
+                                        <th>Admin WL</th>
+                                        <th>Incassato</th>
+                                        <th>L0</th>
+                                        <th>L1</th>
+                                        <th>L2</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenue-table-body">
+                                    <!-- Data will be injected -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="workspace-stack">
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Logica report</h4></div>
+                                <div class="bullet-list">
+                                    <div class="item">Dati presi dai pagamenti clienti presenti nel backend.</div>
+                                    <div class="item">Ripartizione calcolata per ogni Admin WL usando la sua fee L1.</div>
+                                    <div class="item">L2 affiliati impostata a quota network standard (10%).</div>
+                                    <div class="item">Le eccezioni manuali si gestiscono in <strong>Fee Rules</strong>.</div>
+                                </div>
+                            </div>
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Uso rapido</h4></div>
+                                <div class="bullet-list">
+                                    <div class="item">Apri <strong>Gestione Admin</strong> per verificare status e piano del brand.</div>
+                                    <div class="item">Apri <strong>Pagamenti Admin</strong> per controllare incassi del pacchetto Admin.</div>
+                                    <div class="item">Usa export CSV per rendicontazione interna.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VPS View -->
+                <section id="view-vps" class="view">
+                    <div class="section-toolbar">
+                        <div class="group">
+                            <h2>Gestione VPS Server</h2>
+                            <span class="status-badge pending">Infra Control</span>
+                        </div>
+                        <div class="group">
+                            <button class="btn btn-secondary btn-sm" onclick="alert('Refresh stato VPS (demo UI)')">🔄 Aggiorna Stato</button>
+                            <button class="btn btn-primary" id="add-vps-btn">+ Nuova VPS</button>
+                        </div>
+                    </div>
+                    <p class="section-note" style="margin-bottom:1rem;">Sezione infrastruttura separata dal commerciale: qui gestisci nodi, capacità, allocazioni licenze e stato dei server.</p>
+                    <div class="stats-grid" style="margin-bottom: 2rem;">
+                        <div class="stat-card">
+                            <span class="stat-label">🖥️ VPS Attive</span>
+                            <span class="stat-value" id="vps-count-stat">4</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">⚡ CPU Media</span>
+                            <span class="stat-value">28%</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">🚨 VPS in Errore</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                    </div>
+                    <div class="workspace-split">
+                        <div class="glass-card table-shell">
+                            <div class="panel-title">
+                                <h3>Fleet VPS & Allocazioni</h3>
+                                <div class="sub">Monitoraggio server, stato e carico operativo</div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Server ID</th>
+                                        <th>IP Address</th>
+                                        <th>Location</th>
+                                        <th>Licenze Allocate</th>
+                                        <th>CPU/RAM</th>
+                                        <th>Status</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vps-table-body">
+                                    <!-- populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="workspace-stack">
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Pianificazione Capacità</h4></div>
+                                <div class="bullet-list">
+                                    <div class="item">Monitora i nodi sopra il 70% risorse.</div>
+                                    <div class="item">Provisiona nuovi server prima dei picchi di onboarding.</div>
+                                    <div class="item">Mantieni riserva per deploy urgent / migrazioni VPS.</div>
+                                </div>
+                            </div>
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Checklist Operativa</h4></div>
+                                <div class="mini-grid">
+                                    <div class="mini-card"><div class="lbl">Heartbeat EA</div><div class="val">OK</div></div>
+                                    <div class="mini-card"><div class="lbl">Queue Bridge</div><div class="val">Sync</div></div>
+                                    <div class="mini-card"><div class="lbl">Latency</div><div class="val">&lt; 1s</div></div>
+                                    <div class="mini-card"><div class="lbl">Alerti Critici</div><div class="val">0</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Affiliation (L2) View -->
+                <section id="view-affiliation" class="view">
+                    <div class="section-toolbar">
+                        <div class="group">
+                            <h2>Gestione Affiliazione (L2)</h2>
+                            <span class="status-badge pending">Network L2</span>
+                        </div>
+                        <div class="group">
+                            <button class="btn btn-secondary btn-sm" onclick="alert('Export referral ledger (demo UI)')">📤 Export</button>
+                            <button class="btn btn-secondary btn-sm" onclick="alert('Filtro affiliati avanzato (demo UI)')">🔎 Filtri</button>
+                        </div>
+                    </div>
+                    <p class="section-note" style="margin-bottom:1rem;">Vista separata per affiliati L2: referral code, fee maturate, stato e controlli operativi. La gestione Admin WL (L1) resta nella sezione White Labels.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">📣 Affiliati Totali</span>
+                            <span class="stat-value" id="aff-total-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">✅ Affiliati Attivi</span>
+                            <span class="stat-value" id="aff-active-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">🔗 Referral Codes</span>
+                            <span class="stat-value" id="aff-ref-count">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">💰 Fee Maturate L2</span>
+                            <span class="stat-value" id="aff-fee-total">€0</span>
+                        </div>
+                    </div>
+                    <div class="workspace-split">
+                        <div class="glass-card table-shell" style="margin-top:0;">
+                            <div class="panel-title">
+                                <h3>Registro Affiliati (L2) per Admin WL</h3>
+                                <div class="sub">Referral e fee operative del network</div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Admin WL</th>
+                                        <th>Affiliato</th>
+                                        <th>Referral Code</th>
+                                        <th>Fee %</th>
+                                        <th>Stato</th>
+                                        <th>Fee Maturate</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="affiliation-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="workspace-stack">
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Controlli L2 consigliati</h4></div>
+                                <div class="bullet-list">
+                                    <div class="item">Verifica affiliati inattivi o con fee anomale.</div>
+                                    <div class="item">Controlla referral code duplicati o non tracciati.</div>
+                                    <div class="item">Allinea importi con Payout Fee prima del batch.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fee Rules View -->
+                <section id="view-fee-rules" class="view">
+                    <div class="glass-card">
+                        <div class="section-toolbar">
+                            <div class="group">
+                                <h2>🧮 Regole Fee e Distribuzione Network</h2>
+                                <span class="status-badge pending">Policy Engine</span>
+                            </div>
+                            <div class="group">
+                                <button class="btn btn-secondary btn-sm" onclick="alert('Storico modifiche regole (demo UI)')">🕘 Storico</button>
+                            </div>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Percentuali di ripartizione L0/L1/L2, policy standard del network ed eccezioni per simulazione margine. Qui si configurano le regole, non i pagamenti.</p>
+                        <div class="workspace-split">
+                            <div class="glass" style="padding:1rem; border-radius:12px;">
+                                <div class="panel-title"><h3>Default Globali</h3><div class="sub">Policy di rete</div></div>
+                                <div class="form-group"><label>L0 Fee (%)</label><input id="fee-rule-l0" type="number" value="20"></div>
+                                <div class="form-group"><label>L1 Fee Default (%)</label><input id="fee-rule-l1" type="number" value="70"></div>
+                                <div class="form-group"><label>L2 Fee Default (%)</label><input id="fee-rule-l2" type="number" value="10"></div>
+                                <button class="btn btn-primary" id="save-fee-rules-btn">💾 Salva Regole Fee</button>
+                            </div>
+                            <div class="glass" style="padding:1rem; border-radius:12px;">
+                                <div class="panel-title"><h3>Simulatore Distribuzione</h3><div class="sub">Validazione margine</div></div>
+                                <div class="form-group"><label>Valore vendita (€)</label><input id="fee-sim-sale" type="number" value="109"></div>
+                                <div class="form-group"><label>Fee L1 (%)</label><input id="fee-sim-l1" type="number" value="70"></div>
+                                <div class="form-group"><label>Fee L2 (%)</label><input id="fee-sim-l2" type="number" value="10"></div>
+                                <button class="btn btn-secondary" id="calc-fee-sim-btn">Calcola Split</button>
+                                <pre id="fee-sim-output" style="margin-top:1rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08); padding:0.85rem; border-radius:10px; color:#cbd5e1;">Pronto.</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fee Payouts View -->
+                <section id="view-fee-payouts" class="view">
+                    <div class="section-toolbar">
+                        <div class="group">
+                            <h2>💸 Pagamenti Fee / Payout</h2>
+                            <span class="status-badge pending">Queue Operativa</span>
+                        </div>
+                        <div class="group">
+                            <button class="btn btn-secondary btn-sm" onclick="alert('Esporta payout queue (demo UI)')">📤 Export Queue</button>
+                        </div>
+                    </div>
+                    <p class="section-note" style="margin-bottom:1rem;">Sezione operativa per payout L1/L2 e verifica pagamenti manuali clienti. Approvazioni e batch sono separati dalla fatturazione documentale.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">💸 Da Pagare (L1+L2)</span>
+                            <span class="stat-value" id="fee-payout-due">€0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">✅ Pagati (30d)</span>
+                            <span class="stat-value" id="fee-payout-paid">€0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">⏳ Pending Payout</span>
+                            <span class="stat-value" id="fee-payout-pending">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">⚠️ Da Verificare</span>
+                            <span class="stat-value" id="fee-payout-review">0</span>
+                        </div>
+                    </div>
+                    <div class="glass-card table-shell" style="margin-top:2rem;">
+                        <div class="section-toolbar" style="padding-bottom:.25rem;">
+                            <div class="group">
+                                <h3>Queue Pagamenti Fee (L1 / L2)</h3>
+                                <span class="status-badge pending">Batch Queue</span>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="run-fee-payout-btn">▶ Esegui Batch Payout</button>
+                        </div>
+                        <table class="log-table">
+                            <thead>
+                                <tr>
+                                    <th>Beneficiario</th>
+                                    <th>Livello</th>
+                                    <th>Periodo</th>
+                                    <th>Fee Maturate</th>
+                                    <th>Stato</th>
+                                    <th>Metodo</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fee-payouts-table-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Fee Invoices View -->
+                <section id="view-fee-invoices" class="view">
+                    <div class="glass-card">
+                        <div class="section-toolbar">
+                            <div class="group">
+                                <h2>🧾 Fatturazione Fee / Network</h2>
+                                <span class="status-badge active">Billing Desk</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="refresh-fee-invoices-btn">🔄 Aggiorna</button>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Creazione, invio, pagamento e gestione stato dei documenti fee/network. Workflow completo: PROFORMA -> INVOICE -> pagamento/verifica -> rendicontazione.</p>
+                        <div class="fee-invoice-form-grid">
+                            <div style="grid-column: span 3;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Cliente (ID)</label>
+                                <input id="fee-invoice-client-id" type="text" placeholder="es. UUID cliente" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Importo Netto (€)</label>
+                                <input id="fee-invoice-amount" type="number" step="0.01" min="0" placeholder="109.00" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                            </div>
+                            <div style="grid-column: span 3;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Descrizione</label>
+                                <input id="fee-invoice-desc" type="text" placeholder="SoftiBridge servizio / fee / setup" value="SoftiBridge service invoice" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Documento</label>
+                                <select id="fee-invoice-doc-type" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                                    <option value="PROFORMA">Proforma (manuale)</option>
+                                    <option value="INVOICE">Fattura fiscale</option>
+                                </select>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Metodo</label>
+                                <select id="fee-invoice-method" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                                    <option value="BANK_TRANSFER">Bonifico</option>
+                                    <option value="USDT_TRC20">USDT TRON</option>
+                                    <option value="STRIPE">Stripe</option>
+                                </select>
+                            </div>
+                            <label style="grid-column: span 2; display:flex; align-items:center; gap:0.45rem; font-size:0.82rem; color:var(--text-dim); margin-bottom:0.2rem;">
+                                <input id="fee-invoice-send-now" type="checkbox">
+                                Invia subito
+                            </label>
+                            <button class="btn btn-primary btn-sm" id="issue-fee-invoice-btn" style="grid-column: span 2;">➕ Emetti Fattura</button>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Storico documenti legati a fee, payout e ripartizioni del network (backend reale + ledger dimostrativo finché non chiudi il fee engine completo).</p>
+                        <div class="section-toolbar" style="justify-content:flex-start; margin-bottom:1rem;">
+                            <select id="fee-inv-filter-status" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.03);">
+                                <option value="ALL">Stato: Tutti</option>
+                                <option value="PAID">Pagati</option>
+                                <option value="PENDING_VERIFICATION">In verifica</option>
+                                <option value="PENDING_PAYMENT">Da pagare</option>
+                                <option value="SENT">Inviati</option>
+                                <option value="ISSUED">Emessi</option>
+                            </select>
+                            <select id="fee-inv-filter-method" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.03);">
+                                <option value="ALL">Metodo: Tutti</option>
+                                <option value="STRIPE">Stripe</option>
+                                <option value="BANK_TRANSFER">Bonifico</option>
+                                <option value="USDT_TRC20">USDT TRON</option>
+                            </select>
+                            <select id="fee-inv-filter-doc" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.03);">
+                                <option value="ALL">Documento: Tutti</option>
+                                <option value="INVOICE">Fatture</option>
+                                <option value="PROFORMA">Proforma</option>
+                            </select>
+                            <input id="fee-inv-filter-q" type="text" placeholder="Cerca doc / cliente / email" style="min-width:260px; padding:0.55rem 0.75rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                        </div>
+                        <div class="table-shell">
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Documento</th>
+                                        <th>Tipo</th>
+                                        <th>Periodo</th>
+                                        <th>Importo</th>
+                                        <th>Stato</th>
+                                        <th>Fonte</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fee-invoices-table-body"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-card table-shell" style="margin-top:1.1rem;">
+                            <div class="section-toolbar" style="padding-bottom:.25rem;">
+                                <div class="group">
+                                    <h3>Archivio Pagamenti Clienti</h3>
+                                    <span class="status-badge warning">Bonifico / USDT</span>
+                                </div>
+                                <div class="group">
+                                    <select id="manual-payments-status-filter" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.03);">
+                                        <option value="ALL">Stato: Tutti</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="APPROVED">Approvati</option>
+                                        <option value="REJECTED">Rifiutati</option>
+                                    </select>
+                                    <button class="btn btn-secondary btn-sm" id="refresh-manual-payments-btn">🔄 Aggiorna</button>
+                                </div>
+                            </div>
+                            <p class="section-note" style="margin-bottom:.75rem;">Archivio pagamenti manuali inviati dai clienti con riferimento CRO/TXID, ricevuta e azioni di verifica. Questa sezione rimane nel blocco Billing/Fatture per evitare confusione con i payout commissioni.</p>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Fattura</th>
+                                        <th>Metodo</th>
+                                        <th>Riferimento</th>
+                                        <th>Importo</th>
+                                        <th>Stato</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manual-payments-table-body"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-card table-shell" style="margin-top:1.1rem;">
+                            <div class="section-toolbar" style="padding-bottom:.25rem;">
+                                <div class="group">
+                                    <h3>Archivio Pagamenti Clienti (Tutti)</h3>
+                                    <span class="status-badge active">Stripe + Manuali</span>
+                                </div>
+                                <div class="group">
+                                    <select id="client-payments-status-filter" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.03);">
+                                        <option value="ALL">Stato: Tutti</option>
+                                        <option value="PAID">Pagati</option>
+                                        <option value="PENDING_VERIFICATION">In verifica</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="REJECTED">Rifiutati</option>
+                                    </select>
+                                    <button class="btn btn-secondary btn-sm" id="refresh-client-payments-btn">🔄 Aggiorna</button>
+                                </div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Admin WL</th>
+                                        <th>Fattura</th>
+                                        <th>Metodo</th>
+                                        <th>Importo</th>
+                                        <th>Stato</th>
+                                        <th>Dettagli</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="client-payments-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Billing Admin (Super Admin dedicated) -->
+                <section id="view-billing-admin" class="view">
+                    <div class="glass-card">
+                        <div class="section-toolbar">
+                            <div class="group">
+                                <h2>🏦 Billing Admin WL</h2>
+                                <span class="status-badge active">Separato</span>
+                            </div>
+                            <div class="group">
+                                <button class="btn btn-secondary btn-sm" id="refresh-admin-billing-btn">🔄 Aggiorna</button>
+                            </div>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Sezione dedicata ai piani, fatture e pagamenti degli Admin WL. Separata dalla fatturazione clienti finali.</p>
+
+                        <div class="stats-grid" style="margin-bottom:1rem;">
+                            <div class="stat-card">
+                                <span class="stat-label">Documenti Admin</span>
+                                <span class="stat-value" id="admin-billing-doc-count">0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Da Incassare</span>
+                                <span class="stat-value" id="admin-billing-open-total">€0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Incassato</span>
+                                <span class="stat-value" id="admin-billing-paid-total">€0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Admin con documenti</span>
+                                <span class="stat-value" id="admin-billing-admin-count">0</span>
+                            </div>
+                        </div>
+
+                        <div class="fee-invoice-form-grid">
+                            <div style="grid-column: span 3;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Admin WL</label>
+                                <select id="admin-billing-admin-id" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                                    <option value="">Seleziona Admin</option>
+                                </select>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Importo (€)</label>
+                                <input id="admin-billing-amount" type="number" step="0.01" min="0" placeholder="99.00" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                            </div>
+                            <div style="grid-column: span 3;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Descrizione</label>
+                                <input id="admin-billing-desc" type="text" value="SoftiBridge Admin monthly plan" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Documento</label>
+                                <select id="admin-billing-doc-type" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                                    <option value="PROFORMA">Proforma</option>
+                                    <option value="INVOICE">Fattura</option>
+                                </select>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.3rem;">Metodo</label>
+                                <select id="admin-billing-method" style="width:100%; padding:0.65rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px;">
+                                    <option value="BANK_TRANSFER">Bonifico</option>
+                                    <option value="USDT_TRC20">USDT TRON</option>
+                                    <option value="STRIPE">Stripe</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="issue-admin-billing-btn" style="grid-column: span 2;">➕ Emetti Billing Admin</button>
+                        </div>
+
+                        <div class="glass-card table-shell" style="margin-top:1rem;">
+                            <div class="section-toolbar" style="padding-bottom:.25rem;">
+                                <div class="group"><h3>Fatture Admin WL</h3><span class="status-badge pending">Billing Admin</span></div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Documento</th>
+                                        <th>Admin</th>
+                                        <th>Metodo</th>
+                                        <th>Importo</th>
+                                        <th>Stato</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-billing-invoices-table-body"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- Admin Payments (Super Admin dedicated, real) -->
+                <section id="view-admin-billing-payments" class="view">
+                    <div class="glass-card">
+                        <div class="section-toolbar">
+                            <div class="group">
+                                <h2>💳 Pagamenti Admin WL</h2>
+                                <span class="status-badge active">Reale</span>
+                            </div>
+                            <div class="group">
+                                <button class="btn btn-secondary btn-sm" id="refresh-admin-billing-payments-btn">🔄 Aggiorna</button>
+                            </div>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Sezione separata per i pagamenti degli Admin WL (Stripe + manuali) e coda verifiche manuali Bonifico/USDT. Nessuna fattura qui: solo pagamenti.</p>
+
+                        <div class="stats-grid" style="margin-bottom:1rem;">
+                            <div class="stat-card">
+                                <span class="stat-label">Pagamenti Admin</span>
+                                <span class="stat-value" id="admin-payments-count">0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Totale Pagato</span>
+                                <span class="stat-value" id="admin-payments-total-paid">€0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Manuali Pending</span>
+                                <span class="stat-value" id="admin-payments-manual-pending">0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Manuali Approvati</span>
+                                <span class="stat-value" id="admin-payments-manual-approved">0</span>
+                            </div>
+                        </div>
+
+                        <div class="glass-card table-shell" style="margin-top:0;">
+                            <div class="section-toolbar" style="padding-bottom:.25rem;">
+                                <div class="group"><h3>Archivio Pagamenti Admin</h3><span class="status-badge active">Stripe + Manuali</span></div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Admin</th>
+                                        <th>Documento</th>
+                                        <th>Metodo</th>
+                                        <th>Importo</th>
+                                        <th>Stato</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-billing-payments-table-body"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-card table-shell" style="margin-top:1rem;">
+                            <div class="section-toolbar" style="padding-bottom:.25rem;">
+                                <div class="group"><h3>Pagamenti Manuali Admin</h3><span class="status-badge warning">Bonifico / USDT</span></div>
+                                <div class="group">
+                                    <select id="admin-manual-payments-status-filter" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.03);">
+                                        <option value="ALL">Stato: Tutti</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="APPROVED">Approvati</option>
+                                        <option value="REJECTED">Rifiutati</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Admin</th>
+                                        <th>Documento</th>
+                                        <th>Metodo</th>
+                                        <th>Riferimento</th>
+                                        <th>Stato</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-manual-payments-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings View -->
+                <section id="view-settings" class="view">
+                    <div class="glass-card">
+                        <div class="section-toolbar">
+                            <div class="group">
+                                <h2>⚙️ Configurazione Piattaforma</h2>
+                                <span class="status-badge pending">Global Settings</span>
+                            </div>
+                        </div>
+                        <p class="section-note" style="margin-bottom:1rem;">Impostazioni globali rete e piattaforma. Le integrazioni (API, Telegram, Stripe, SMTP) sono nel Plug&Play Setup Center della sezione Settings.</p>
+                        <div class="settings-split-grid">
+                            <div>
+                                <h3>Commissioni Standard (Network)</h3>
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label>L0 Super Admin Fee (%)</label>
+                                    <input type="number" value="20"
+                                        style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px;">
+                                </div>
+                                <div class="form-group">
+                                    <label>L1 Admin Default Fee (%)</label>
+                                    <input type="number" value="70"
+                                        style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px;">
+                                </div>
+                                <div class="form-group">
+                                    <label>L2 Affiliate Default Fee (%)</label>
+                                    <input type="number" value="10"
+                                        style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px;">
+                                </div>
+                            </div>
+                            <div>
+                                <h3>Sistema Multi-Livello</h3>
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label>Attiva Licenze White Label (L1)</label>
+                                    <select
+                                        style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px;">
+                                        <option>ABILITATO</option>
+                                        <option>DISABILITATO</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Attiva Affiliati (L2)</label>
+                                    <select
+                                        style="width:100%; padding:0.8rem; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:8px;">
+                                        <option>ABILITATO</option>
+                                        <option>DISABILITATO</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;"
+                                    onclick="alert('Impostazioni Globali Salvate!')">💾 Salva Impostazioni</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- L0: White Labels View -->
+                <section id="view-whitelabels" class="view">
+                    <div class="section-toolbar">
+                        <div class="group">
+                            <h2>Network Admin White Label (L1)</h2>
+                            <span class="status-badge active">L0 Control</span>
+                        </div>
+                        <div class="group">
+                            <button class="btn btn-secondary btn-sm" id="wl-open-fee-report-btn">📊 Report Fee</button>
+                            <button class="btn btn-secondary btn-sm" id="refresh-wl-network-btn">🔄 Aggiorna</button>
+                            <button class="btn btn-primary btn-sm" id="create-admin-btn">➕ Crea Admin</button>
+                        </div>
+                    </div>
+                    <p class="section-note" style="margin-bottom:1rem;">Gestione Admin WL (L1): anagrafica, stato, piano, limiti, branding e controllo operativo. Sezione separata da fatturazione e pagamenti Admin.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">🏢 Admin WL Totali</span>
+                            <span class="stat-value" id="wl-count">2</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">💰 Volume Clienti Tracciato</span>
+                            <span class="stat-value" id="wl-l0-profit">€4,860</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">⚠️ Admin in Grace / Pending</span>
+                            <span class="stat-value" id="wl-risk-count">0</span>
+                        </div>
+                    </div>
+                    <div class="workspace-split">
+                        <div class="glass-card table-shell" style="margin-top:0;">
+                            <div class="panel-title">
+                                <h3>Registro Admin WL (L1)</h3>
+                                <div class="sub">Configurazione, volume e stato operativo per brand</div>
+                            </div>
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Brand</th>
+                                        <th>Contatto</th>
+                                        <th>Status</th>
+                                        <th>Fee L1</th>
+                                        <th>Affiliati</th>
+                                        <th>Volume</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wl-table-body">
+                                    <!-- populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="workspace-stack">
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Workflow White Label</h4></div>
+                                <div class="bullet-list">
+                                    <div class="item">Crea Admin WL con fee e brand.</div>
+                                    <div class="item">Apri dettaglio per gestire affiliati L2 e referral.</div>
+                                    <div class="item">Controlla volumi e redditività L0 per brand.</div>
+                                    <div class="item">Sospendi/riattiva solo dopo verifica impatti su licenze.</div>
+                                </div>
+                            </div>
+                            <div class="glass-card">
+                                <div class="panel-title"><h4>Rendicontazione rapida</h4></div>
+                                <div class="mini-grid">
+                                    <div class="mini-card"><div class="lbl">WL Attivi</div><div class="val" id="wl-count-shadow">2</div></div>
+                                    <div class="mini-card"><div class="lbl">L0 Netto</div><div class="val">20%</div></div>
+                                    <div class="mini-card"><div class="lbl">Affiliati Totali</div><div class="val" id="wl-aff-count-shadow">5</div></div>
+                                    <div class="mini-card"><div class="lbl">Stato Rete</div><div class="val" style="color:#34d399;">Healthy</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- VPS Add Modal -->
+    <div id="vps-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>🖥️ Connetti Nuova VPS</h2>
+            <form id="vps-form">
+                <div class="form-group">
+                    <label>Provider (Contabo/AWS/ecc)</label>
+                    <input id="vps-provider" type="text" placeholder="Es. Contabo S-1" required>
+                </div>
+                <div class="form-group">
+                    <label>Indirizzo IP</label>
+                    <input id="vps-ip" type="text" placeholder="192.168.1.1">
+                </div>
+                <div class="form-group">
+                    <label>Location Server</label>
+                    <select id="vps-location">
+                        <option>Frankfurt, DE (Consigliato)</option>
+                        <option>London, UK</option>
+                        <option>New York, US</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Note operative (opzionale)</label>
+                    <input id="vps-notes" type="text" placeholder="Es. Nodo forex primario">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('vps-modal').style.display='none'">Annulla</button>
+                    <button type="submit" class="btn btn-primary">➕ Collega e Sincronizza</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for adding license -->
+    <div id="license-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>Genera Nuova Licenza</h2>
+            <form id="license-form">
+                <div class="form-group">
+                    <label>Tipo Pacchetto</label>
+                    <select>
+                        <option value="BASIC">BASIC (59€)</option>
+                        <option value="PRO">PRO (109€)</option>
+                        <option value="ENTERPRISE">ENTERPRISE (199€)</option>
+                        <option value="EMERGENCY_24H">EMERGENCY (49€)</option>
+                        <option value="EXTRA_7D">EXTRA 7D (129€)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Durata (Giorni)</label>
+                    <input type="number" value="30">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary closeModal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Genera License Key</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Interactive Guide Overlay -->
+    <div id="guide-overlay" class="guide-overlay">
+        <div class="guide-card glass">
+            <span class="guide-step-indicator" id="guide-step-num">Step 1 di 3</span>
+            <h2 id="guide-title">Benvenuto nell'Ecosistema!</h2>
+            <p id="guide-desc">Questa è la tua centrale operativa. Da qui puoi controllare il Bot Telegram, gestire le
+                licenze e monitorare gli EA in tempo reale.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="skip-guide">Salta</button>
+                <button class="btn btn-primary" id="next-guide">Avanti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade/Revoke Modal (hidden by default) -->
+    <div id="manage-license-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>Gestisci Licenza</h2>
+            <p id="manage-license-id" style="font-family: monospace; color: var(--accent); margin-bottom: 1.5rem;"></p>
+
+            <div class="form-group">
+                <label>Cambia Piano (Upgrade)</label>
+                <select id="upgrade-tier-select">
+                    <option value="BASIC">BASIC (1 Account)</option>
+                    <option value="PRO">PRO (3 Account)</option>
+                    <option value="ENTERPRISE">ENTERPRISE (10 Account)</option>
+                </select>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeManageModal()">Annulla</button>
+                <button class="btn btn-warning" id="kill-remote-btn">💀 Remote Kill</button>
+                <button class="btn btn-warning" id="revoke-license-btn">Revoca</button>
+                <button class="btn btn-primary" id="save-upgrade-btn">Salva Upgrade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE ADMIN MODAL (L0 → L1) -->
+    <div id="create-admin-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>🏢 Crea Admin White Label</h2>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem; font-size:0.85rem;">Il nuovo Admin potrà vendere
+                licenze e creare affiliati nel suo network.</p>
+            <form id="create-admin-form">
+                <div class="form-group">
+                    <label>Email Admin (login)</label>
+                    <input type="email" id="admin-email-input" placeholder="admin@brand.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Nome Contatto</label>
+                    <input type="text" id="admin-name-input" placeholder="es. Carlo Rossi" required>
+                </div>
+                <div class="form-group">
+                    <label>Brand / Company</label>
+                    <input type="text" id="admin-brand-input" placeholder="es. CR Signals" required>
+                </div>
+                <div class="form-group">
+                    <label>Piano Admin</label>
+                    <select id="admin-plan-select">
+                        <option value="START">START</option>
+                        <option value="BASIC" selected>BASIC</option>
+                        <option value="PRO">PRO</option>
+                        <option value="ENTERPRISE">ENTERPRISE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fee L1 (% vendite che tiene l'Admin)</label>
+                    <select id="admin-fee-select">
+                        <option value="0.70">70% (Standard)</option>
+                        <option value="0.65">65% (Premium per SA)</option>
+                        <option value="0.60">60% (VIP per SA)</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="close-create-admin">Annulla</button>
+                    <button type="submit" class="btn btn-primary">✅ Crea Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN DETAIL MODAL -->
+    <div id="admin-detail-modal" class="modal-overlay">
+        <div class="modal glass" style="max-width: 700px;">
+            <h2 id="admin-detail-title">📊 Admin Detail</h2>
+            <div class="stats-grid" style="margin: 1rem 0; grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card" style="padding: 1rem;">
+                    <span class="stat-label">Fee L1</span>
+                    <span class="stat-value" style="font-size:1.4rem;" id="detail-fee">70%</span>
+                </div>
+                <div class="stat-card" style="padding: 1rem;">
+                    <span class="stat-label">Volume Vendite</span>
+                    <span class="stat-value" style="font-size:1.4rem;" id="detail-volume">€0</span>
+                </div>
+                <div class="stat-card" style="padding: 1rem;">
+                    <span class="stat-label">Affiliati Attivi</span>
+                    <span class="stat-value" style="font-size:1.4rem;" id="detail-affiliates">0</span>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Affiliati (L2)</h3>
+                <button class="btn btn-primary btn-sm" id="add-affiliate-btn">➕ Aggiungi Affiliato</button>
+            </div>
+            <div id="admin-detail-meta" class="section-note" style="margin-bottom:.75rem;">Dettaglio admin in caricamento...</div>
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Ref Code</th>
+                        <th>Fee</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="affiliates-table-body"></tbody>
+            </table>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn btn-secondary" id="close-admin-detail">Chiudi</button>
+                <button class="btn btn-secondary" id="admin-detail-activate-btn">Attiva</button>
+                <button class="btn btn-secondary" id="admin-detail-grace-btn">Grace</button>
+                <button class="btn btn-warning" id="admin-detail-suspend-btn">Sospendi</button>
+                <button class="btn btn-warning" id="admin-detail-revoke-btn">Revoca</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE AFFILIATE MODAL (L1 → L2) -->
+    <div id="create-affiliate-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>📣 Crea Affiliato</h2>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem; font-size:0.85rem;">L'affiliato riceverà un link
+                referral univoco. Guadagna sulla fee L2.</p>
+            <form id="create-affiliate-form">
+                <div class="form-group">
+                    <label>Nome Affiliato</label>
+                    <input type="text" id="affiliate-name-input" placeholder="es. Marco Verdi" required>
+                </div>
+                <div class="form-group">
+                    <label>Fee L2 (% su sue referral)</label>
+                    <select id="affiliate-fee-select">
+                        <option value="0.10">10% (Standard)</option>
+                        <option value="0.08">8% (Ridotta)</option>
+                        <option value="0.12">12% (Premium)</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="close-create-affiliate">Annulla</button>
+                    <button type="submit" class="btn btn-primary">✅ Genera Link Referral</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE CLIENT MODAL -->
+    <div id="create-client-modal" class="modal-overlay">
+        <div class="modal glass">
+            <h2>➕ Aggiungi Cliente</h2>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem; font-size:0.85rem;">Crea un nuovo cliente nel CRM.
+                La licenza verrà generata in automatico o inserita manualmente.</p>
+            <form id="create-client-form">
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div>
+                        <label>Nome</label>
+                        <input type="text" id="new-cli-name" placeholder="Mario" required>
+                    </div>
+                    <div>
+                        <label>Cognome</label>
+                        <input type="text" id="new-cli-surname" placeholder="Rossi" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Telegram Username</label>
+                    <input type="text" id="new-cli-tg" placeholder="@mario_rossi" required>
+                </div>
+                <div class="form-group">
+                    <label>Assegna a Admin WL (solo Super Admin)</label>
+                    <select id="new-cli-admin-wl">
+                        <option value="">Senza Admin</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div>
+                        <label>Piano</label>
+                        <select id="new-cli-plan">
+                            <option value="BASIC">BASIC (59€)</option>
+                            <option value="PRO">PRO (109€)</option>
+                            <option value="ENTERPRISE">ENTERPRISE (199€)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Durata (Giorni)</label>
+                        <input type="number" id="new-cli-days" value="30">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="close-create-client">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Crea Cliente e Licenza</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
