@@ -2076,6 +2076,8 @@
         });
 
         document.getElementById('hub-login-btn')?.addEventListener('click', async () => {
+            const email = (document.getElementById('hub-login-email')?.value || '').trim();
+            const password = document.getElementById('hub-login-password')?.value || '';
             if (!email || !password) {
                 setAuthStatus('Inserisci email e password per accedere.', 'err');
                 return;
