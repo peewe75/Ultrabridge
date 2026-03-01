@@ -1,0 +1,22 @@
+{
+    "cleanUrls": true,
+    "trailingSlash": true,
+    "rewrites": [
+        {
+            "source": "/dashboard/client/(.*)",
+            "destination": "/webapps/client_webapp/$1"
+        },
+        {
+            "source": "/dashboard/admin/(.*)",
+            "destination": "/webapps/admin_webapp/$1"
+        },
+        {
+            "source": "/dashboard/super-admin/(.*)",
+            "destination": "/webapps/super_admin_webapp/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/webapps/landing_page/$1"
+        }
+    ]
+}
