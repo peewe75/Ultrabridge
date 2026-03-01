@@ -1852,12 +1852,15 @@
 
         function getLandingApiBase() {
             const fromQuery = new URLSearchParams(window.location.search).get('api');
-            const fromStorage = localStorage.getItem('softibridge_api_base');
-            const originApi = `${window.location.origin}/api`;
-            let base = (fromQuery || fromStorage || originApi || '').trim();
-            if (!base) base = 'http://127.0.0.1:8000/api';
+            let fromStorage = localStorage.getItem('softibridge_api_base');
+            if (fromStorage && fromStorage.includes('tuo-vps-ip')) fromStorage = null;
+
+            const isLocal = window.location.protocol === 'file:';
+            const originApi = isLocal ? null : `${window.location.origin}/api`;
+
+            let base = (fromQuery || fromStorage || originApi || 'http://127.0.0.1:8000/api').trim();
             if (!/^https?:\/\//i.test(base)) {
-                base = base.startsWith('/') ? `${window.location.origin}${base}` : `http://${base}`;
+                base = base.startsWith('/') && !isLocal ? `${window.location.origin}${base}` : `http://${base}`;
             }
             base = base.replace(/\/+$/, '');
             if (!/\/api$/i.test(base)) base += '/api';
