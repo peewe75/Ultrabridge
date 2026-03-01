@@ -1969,12 +1969,46 @@
                         uiContainer.innerHTML = ''; // Rimuovi loader
                         window.Clerk.mountSignIn(uiContainer, {
                             appearance: {
+                                variables: {
+                                    colorPrimary: '#00f2ff',
+                                    colorBackground: 'transparent',
+                                    colorText: '#f0f4ff',
+                                    colorInputText: '#f0f4ff',
+                                    colorInputBackground: 'rgba(8, 16, 40, 0.6)',
+                                    colorTextSecondary: '#7a8ba8',
+                                    colorDanger: '#ff4d6d',
+                                    colorSuccess: '#00e676',
+                                    fontFamily: '"Inter", sans-serif',
+                                },
                                 elements: {
-                                    card: { boxShadow: 'none', background: 'transparent' },
-                                    headerTitle: { color: '#fff' },
-                                    headerSubtitle: { color: 'var(--text-dim)' },
-                                    socialButtonsBlockButton: { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' },
-                                    formButtonPrimary: { background: 'var(--accent-primary)', color: '#fff' },
+                                    rootBox: { width: '100%' },
+                                    cardBox: { boxShadow: 'none', width: '100%', margin: '0' },
+                                    card: { boxShadow: 'none', background: 'transparent', width: '100%', padding: '0' },
+                                    headerTitle: { display: 'none' },
+                                    headerSubtitle: { display: 'none' },
+                                    socialButtonsBlockButton: {
+                                        background: 'rgba(255,255,255,0.05)',
+                                        borderColor: 'rgba(255,255,255,0.1)',
+                                        color: '#f0f4ff'
+                                    },
+                                    socialButtonsBlockButtonText: { color: '#f0f4ff' },
+                                    dividerLine: { background: 'rgba(255,255,255,0.1)' },
+                                    dividerText: { color: '#7a8ba8' },
+                                    formFieldLabel: { color: '#f0f4ff' },
+                                    formFieldInput: {
+                                        background: 'rgba(8, 16, 40, 0.6)',
+                                        borderColor: 'rgba(255, 255, 255, 0.07)',
+                                        color: '#f0f4ff'
+                                    },
+                                    formButtonPrimary: {
+                                        background: 'linear-gradient(135deg, #00f2ff, #0055ff)',
+                                        color: '#fff',
+                                        boxShadow: '0 0 15px rgba(0, 242, 255, 0.3)',
+                                        fontWeight: '600'
+                                    },
+                                    footerActionText: { color: '#7a8ba8' },
+                                    footerActionLink: { color: '#00f2ff', fontWeight: 'bold' },
+                                    footer: { background: 'transparent', borderTop: 'none', paddingBottom: '0' }
                                 }
                             }
                         });
