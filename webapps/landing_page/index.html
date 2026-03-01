@@ -1855,10 +1855,20 @@
             let fromStorage = localStorage.getItem('softibridge_api_base');
             if (fromStorage && fromStorage.includes('tuo-vps-ip')) fromStorage = null;
 
-            const isLocal = window.location.protocol === 'file:';
-            const originApi = isLocal ? null : `${window.location.origin}/api`;
+            const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const originApi = `${window.location.origin}/api`;
 
-            let base = (fromQuery || fromStorage || originApi || 'http://127.0.0.1:8000/api').trim();
+            let base;
+            if (fromQuery) {
+                base = fromQuery;
+            } else if (!isLocal && window.location.origin !== 'null') {
+                // If served from a real domain (like Cloudflare tunnel), use that domain!
+                base = originApi;
+            } else {
+                base = fromStorage || 'http://127.0.0.1:8000/api';
+            }
+
+            base = base.trim();
             if (!/^https?:\/\//i.test(base)) {
                 base = base.startsWith('/') && !isLocal ? `${window.location.origin}${base}` : `http://${base}`;
             }
@@ -1992,7 +2002,7 @@
             try {
                 const apiBase = getLandingApiBase();
                 const res = await fetch(`${apiBase}/public/auth/providers`);
-                if (!res.ok) throw new Error('Failed to fetch providers');
+                if (!res.ok) throw new Error(`HTTP ${res.status} da ${apiBase}`);
                 const payload = await res.json();
                 const provider = payload?.clerk || {};
 
@@ -2050,7 +2060,12 @@
                     errEl.style.color = '#ff4d6d';
                     errEl.style.fontSize = '0.9rem';
                     errEl.style.marginBottom = '1rem';
-                    errEl.textContent = `Errore inizializzazione Clerk: ${e.message}. Verifica console per dettagli.`;
+                    try {
+                        const attemptedBase = getLandingApiBase();
+                        errEl.textContent = `Errore inizializzazione Clerk: ${e.message} (Tentativo verso: ${attemptedBase}). Verifica console per dettagli.`;
+                    } catch (err2) {
+                        errEl.textContent = `Errore inizializzazione Clerk: ${e.message}. Verifica console per dettagli.`;
+                    }
                     fallbackContainer.prepend(errEl);
                 }
             }
