@@ -8,11 +8,11 @@
         },
         {
             "source": "/dashboard/admin/(.*)",
-            "destination": "/webapps/admin_webapp/$1"
+            "destination": "/webapps/admin_lite_webapp/$1"
         },
         {
             "source": "/dashboard/super-admin/(.*)",
-            "destination": "/webapps/super_admin_webapp/$1"
+            "destination": "/webapps/admin_webapp/$1"
         },
         {
             "source": "/(.*)",

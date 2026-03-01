@@ -773,22 +773,25 @@
             </div>
             <div class="auth-hub-grid" data-reveal>
                 <div class="feature-box auth-box">
-                    <h3>Nuovo Cliente</h3>
-                    <p>Crea il tuo account CLIENT per entrare nella dashboard utente e gestire licenza, download e
-                        trading panel.</p>
+                    <h3>Area Clienti (Clerk)</h3>
+                    <p>Accedi alla tua dashboard personale per gestire licenze e download.</p>
                     <div class="auth-form-grid">
-                        <input id="hub-register-email" type="email" placeholder="Email cliente" />
-                        <input id="hub-register-password" type="password" placeholder="Password (min 8 caratteri)" />
-                        <button id="hub-register-btn" class="btn-primary" type="button">Registrazione CLIENT</button>
+                        <input id="hub-login-email" type="email" placeholder="Email cliente" />
+                        <input id="hub-login-password" type="password" placeholder="Password" />
+                        <button id="hub-login-btn" class="btn-primary" type="button">Accedi ora</button>
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; color: var(--text-dim);">
+                        Non hai un account? <a href="#pricing" style="color: var(--accent-primary);">Acquista una
+                            licenza</a>
                     </div>
                 </div>
                 <div class="feature-box auth-box">
                     <h3>Accesso Partner & Admin</h3>
                     <p>Area dedicata ai fornitori di segnali e amministratori di sistema.</p>
                     <div class="auth-form-grid" style="gap: 1rem; margin-top: 1rem;">
-                        <a id="link-admin-dash" href="/dashboard/admin" class="btn-secondary"
+                        <a id="link-admin-dash" href="/dashboard/admin/" class="btn-secondary"
                             style="width: 100%; text-align: center; justify-content: center;">Dashboard Admin</a>
-                        <a id="link-super-admin-dash" href="/dashboard/superadmin" class="btn-secondary"
+                        <a id="link-super-admin-dash" href="/dashboard/super-admin/" class="btn-secondary"
                             style="width: 100%; text-align: center; justify-content: center; opacity: 0.7; font-size: 0.8rem;">Super
                             Admin Portal</a>
                     </div>
@@ -1868,14 +1871,13 @@
         }
 
         function dashboardRouteByRole(role) {
-            const clientUrl = localStorage.getItem('softibridge_client_url') || '';
-            const adminUrl = localStorage.getItem('softibridge_admin_url') || '';
-            const superUrl = localStorage.getItem('softibridge_super_url') || '';
+            const clientUrl = localStorage.getItem('softibridge_client_url') || '/dashboard/client/';
+            const adminUrl = localStorage.getItem('softibridge_admin_url') || '/dashboard/admin/';
+            const superUrl = localStorage.getItem('softibridge_super_url') || '/dashboard/super-admin/';
 
-            if (role === 'CLIENT') return clientUrl ? `${clientUrl}/` : '/dashboard/client/';
-            if (role === 'ADMIN_WL') return adminUrl ? `${adminUrl}/` : '/dashboard/admin/';
-            if (role === 'SUPER_ADMIN') return superUrl ? `${superUrl}/` : '/dashboard/super-admin/';
-            return '/landing/';
+            if (role === 'SUPER_ADMIN') return superUrl;
+            if (role === 'ADMIN_WL') return adminUrl;
+            return clientUrl;
         }
 
         function openSetup() {
@@ -1915,8 +1917,64 @@
             // We'll keep it as #access-hub unless it's a specific "Go to Dashboard" button
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        const clerkState = {
+            checked: false,
+            enabled: false,
+            publishableKey: '',
+            runtimeReady: false,
+        };
+
+        const loadClerkRuntime = async (publishableKey) => {
+            if (!publishableKey) throw new Error('CLERK_PUBLISHABLE_KEY missing');
+            if (!window.Clerk) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.setAttribute('data-clerk-publishable-key', publishableKey);
+                    script.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            if (!window.Clerk.loaded) {
+                await window.Clerk.load({ publishableKey });
+            }
+            clerkState.runtimeReady = true;
+        };
+
+        const initClerkProvider = async () => {
+            if (clerkState.checked) return clerkState;
+            clerkState.checked = true;
+            try {
+                const apiBase = getLandingApiBase();
+                const res = await fetch(`${apiBase}/public/auth/providers`);
+                if (!res.ok) return clerkState;
+                const payload = await res.json();
+                const provider = payload?.clerk || {};
+                if (provider.enabled && provider.publishable_key) {
+                    clerkState.enabled = true;
+                    clerkState.publishableKey = provider.publishable_key;
+                    await loadClerkRuntime(provider.publishable_key);
+                }
+            } catch (e) { console.error('Clerk init error', e); }
+            return clerkState;
+        };
+
+        const clerkEmailPasswordLogin = async (email, password) => {
+            await initClerkProvider();
+            if (!clerkState.enabled || !clerkState.runtimeReady) {
+                throw new Error('Clerk not enabled on backend');
+            }
+            const attempt = await window.Clerk.client.signIn.create({ identifier: email, password });
+            if (attempt.status !== 'complete') throw new Error('Login incomplete');
+            await window.Clerk.setActive({ session: attempt.createdSessionId });
+            return window.Clerk.session?.getToken();
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
             updateDashboardLinks();
+            await initClerkProvider();
         });
 
         function setAuthStatus(message, kind = 'info') {
@@ -1983,11 +2041,22 @@
 
         async function loginAndRoute(email, password) {
             const apiBase = getLandingApiBase();
-            const tok = await authApi('/auth/login', { email, password });
-            const me = await fetchMe(tok.access_token);
-            persistRoleToken(me.role, tok.access_token, apiBase);
-            setAuthStatus(`Accesso OK: ${me.role}. Reindirizzamento in corso...`, 'ok');
-            window.location.href = dashboardRouteByRole(me.role);
+            let token;
+            try {
+                // Try Clerk first if enabled
+                token = await clerkEmailPasswordLogin(email, password);
+            } catch (e) {
+                // Fallback to internal login if Clerk fails or is disabled
+                const tok = await authApi('/auth/login', { email, password });
+                token = tok.access_token;
+            }
+
+            const me = await fetchMe(token);
+            persistRoleToken(me.role, token, apiBase);
+            setAuthStatus(`Accesso OK: ${me.role}. Reindirizzamento...`, 'ok');
+            setTimeout(() => {
+                window.location.href = dashboardRouteByRole(me.role);
+            }, 800);
         }
 
         document.getElementById('hub-register-btn')?.addEventListener('click', async () => {
@@ -2007,8 +2076,6 @@
         });
 
         document.getElementById('hub-login-btn')?.addEventListener('click', async () => {
-            const email = (document.getElementById('hub-login-email')?.value || '').trim();
-            const password = document.getElementById('hub-login-password')?.value || '';
             if (!email || !password) {
                 setAuthStatus('Inserisci email e password per accedere.', 'err');
                 return;
