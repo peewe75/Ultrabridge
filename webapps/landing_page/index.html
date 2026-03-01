@@ -326,7 +326,7 @@
             justify-content: center;
             border-radius: 20px;
             border: 1px solid rgba(0, 242, 255, 0.14);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
         }
 
         .feature-box h3 {
@@ -569,18 +569,23 @@
             .container {
                 padding: 0 1rem;
             }
+
             nav {
                 padding: 1.1rem 0;
             }
+
             .hero {
                 padding: 8.5rem 0 5.5rem;
             }
+
             .trust-bar {
                 gap: 0.9rem;
             }
+
             .hero h1 {
                 letter-spacing: -1px;
             }
+
             .pricing-grid {
                 gap: 1.2rem;
             }
@@ -630,8 +635,8 @@
                 data-reveal data-i18n="hero.badge">
                 🚀 L'ECOSISTEMA DEFINITIVO PER IL TRADING AUTOMATICO E B2B
             </div>
-            <h1 data-reveal><span data-i18n="hero.title">Vendi Segnali Trading</span><br><span data-i18n="hero.title_span"
-                    style="color:var(--accent-primary);">Come un Professionista</span></h1>
+            <h1 data-reveal><span data-i18n="hero.title">Vendi Segnali Trading</span><br><span
+                    data-i18n="hero.title_span" style="color:var(--accent-primary);">Come un Professionista</span></h1>
             <p data-reveal style="font-size:1.15rem;" data-i18n="hero.subtitle">Vuoi automatizzare i segnali del tuo
                 gruppo VIP o vuoi vendere le tue strategie a centinaia di clienti in modo scalabile? SoftiBridge ha la
                 soluzione per entrambi.</p>
@@ -648,7 +653,8 @@
                     </svg>
                     Sono un Trader (Uso Personale)
                 </a>
-                <a href="#admin-pricing" class="btn-secondary" data-i18n="hero.btn_secondary">🏢 Sono un Provider (Admin)</a>
+                <a href="#admin-pricing" class="btn-secondary" data-i18n="hero.btn_secondary">🏢 Sono un Provider
+                    (Admin)</a>
             </div>
             <div class="trust-bar" data-reveal>
                 <div class="trust-stat">
@@ -675,12 +681,14 @@
         <div class="container">
             <div class="section-header">
                 <h2 data-reveal>Area Registrazione e Accesso Dashboard</h2>
-                <p data-reveal>Registrazione pubblica solo per clienti. Admin e Super Admin accedono con credenziali gia assegnate.</p>
+                <p data-reveal>Registrazione pubblica solo per clienti. Admin e Super Admin accedono con credenziali gia
+                    assegnate.</p>
             </div>
             <div class="auth-hub-grid" data-reveal>
                 <div class="feature-box auth-box">
                     <h3>Nuovo Cliente</h3>
-                    <p>Crea il tuo account CLIENT per entrare nella dashboard utente e gestire licenza, download e trading panel.</p>
+                    <p>Crea il tuo account CLIENT per entrare nella dashboard utente e gestire licenza, download e
+                        trading panel.</p>
                     <div class="auth-form-grid">
                         <input id="hub-register-email" type="email" placeholder="Email cliente" />
                         <input id="hub-register-password" type="password" placeholder="Password (min 8 caratteri)" />
@@ -688,17 +696,19 @@
                     </div>
                 </div>
                 <div class="feature-box auth-box">
-                    <h3>Accesso Utenti Registrati</h3>
-                    <p>Login unico. Redirect automatico verso dashboard Client, Admin o Super Admin in base al ruolo.</p>
-                    <div class="auth-form-grid">
-                        <input id="hub-login-email" type="email" placeholder="Email registrata" />
-                        <input id="hub-login-password" type="password" placeholder="Password" />
-                        <button id="hub-login-btn" class="btn-primary" type="button">Accedi</button>
-                        <button id="hub-continue-btn" class="btn-secondary" type="button">Continua sessione esistente</button>
+                    <h3>Accesso Partner & Admin</h3>
+                    <p>Area dedicata ai fornitori di segnali e amministratori di sistema.</p>
+                    <div class="auth-form-grid" style="gap: 1rem; margin-top: 1rem;">
+                        <a href="/dashboard/admin" class="btn-secondary"
+                            style="width: 100%; text-align: center; justify-content: center;">Dashboard Admin</a>
+                        <a href="/dashboard/superadmin" class="btn-secondary"
+                            style="width: 100%; text-align: center; justify-content: center; opacity: 0.7; font-size: 0.8rem;">Super
+                            Admin Portal</a>
                     </div>
                 </div>
             </div>
-            <div id="hub-auth-status" class="auth-status" data-reveal>Pronto. Inserisci credenziali oppure continua una sessione esistente.</div>
+            <div id="hub-auth-status" class="auth-status" data-reveal>Pronto. Inserisci credenziali oppure usa i link
+                rapidi sopra.</div>
         </div>
     </section>
 
@@ -706,45 +716,52 @@
         <div class="container">
             <div class="section-header">
                 <h2 data-reveal data-i18n="features.h2">Tutto quello che ti serve, già pronto</h2>
-                <p data-reveal data-i18n="features.p">SoftiBridge è il layer di controllo tra il tuo canale Telegram e i conti MetaTrader dei
+                <p data-reveal data-i18n="features.p">SoftiBridge è il layer di controllo tra il tuo canale Telegram e i
+                    conti MetaTrader dei
                     tuoi clienti. Segnale inviato = trade aperto, in automatico.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">🛰️</div>
                     <h3 data-i18n="feat1.h3">Bridge MT4 & MT5</h3>
-                    <p data-i18n="feat1.p">Il nostro Bot riceve i segnali dal gruppo Telegram e li elabora istantaneamente mandandoli
+                    <p data-i18n="feat1.p">Il nostro Bot riceve i segnali dal gruppo Telegram e li elabora
+                        istantaneamente mandandoli
                         all'Expert Advisor del cliente. Latenza sotto i 200ms. Nessuna copia manuale, zero errori umani.
                     </p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">🛡️</div>
                     <h3 data-i18n="feat2.h3">Protezione Anti-Piracy</h3>
-                    <p data-i18n="feat2.p">Il tuo lavoro è prezioso. Il sistema HMAC e il Remote Kill Switch bloccano all'istante qualsiasi
+                    <p data-i18n="feat2.p">Il tuo lavoro è prezioso. Il sistema HMAC e il Remote Kill Switch bloccano
+                        all'istante qualsiasi
                         tentativo di furto o uso non autorizzato delle licenze.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">📢</div>
                     <h3 data-i18n="feat3.h3">Reminder & Rinnovi Automatici</h3>
-                    <p data-i18n="feat3.p">Il bot invia reminder automatici a 7, 3 e 0 giorni prima della scadenza dell'abbonamento. Il
+                    <p data-i18n="feat3.p">Il bot invia reminder automatici a 7, 3 e 0 giorni prima della scadenza
+                        dell'abbonamento. Il
                         processo è fluido e non perderai mai più un pagamento dai tuoi iscritti.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">⚡</div>
                     <h3 data-i18n="feat4.h3">Licenza Attiva in 30 secondi</h3>
-                    <p data-i18n="feat4.p">Acquisto su Telegram ➔ Generazione Licenza ➔ Invio Credenziali ➔ EA Operativo. Il flow di
+                    <p data-i18n="feat4.p">Acquisto su Telegram ➔ Generazione Licenza ➔ Invio Credenziali ➔ EA
+                        Operativo. Il flow di
                         attivazione è completato in autonomia sotto il minuto.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">🔄</div>
                     <h3 data-i18n="feat5.h3">VPS Migration Automatica</h3>
-                    <p data-i18n="feat5.p">Se l'utente cambia server, il sistema invalida l'ID precedente e autorizza il nuovo hardware in
+                    <p data-i18n="feat5.p">Se l'utente cambia server, il sistema invalida l'ID precedente e autorizza il
+                        nuovo hardware in
                         automatico, azzerando i ticket di supporto.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <div class="feature-icon">📈</div>
                     <h3 data-i18n="feat6.h3">Potenzialità di Scalabilità</h3>
-                    <p data-i18n="feat6.p">Parti da una singola sala Telegram e cresci fino a più gruppi, VPS e account gestiti con la stessa
+                    <p data-i18n="feat6.p">Parti da una singola sala Telegram e cresci fino a più gruppi, VPS e account
+                        gestiti con la stessa
                         infrastruttura. SoftiBridge è pensato per evolvere con il tuo business.</p>
                 </div>
             </div>
@@ -759,7 +776,8 @@
                     <span data-i18n="pricing.user.badge">👤 PER I TRADER (USO PERSONALE)</span>
                 </div>
                 <h2 data-reveal data-i18n="pricing.user.h2">Non perdere più un segnale dalla tua sala di trading</h2>
-                <p data-reveal data-i18n="pricing.user.p">Acquista il Bot, collegalo alla tua MetaTrader e lascia che copi in automatico i segnali
+                <p data-reveal data-i18n="pricing.user.p">Acquista il Bot, collegalo alla tua MetaTrader e lascia che
+                    copi in automatico i segnali
                     del tuo gruppo Telegram VIP. Scegli il piano in base a quanti conti e gruppi vuoi automatizzare.
                 </p>
             </div>
@@ -775,7 +793,8 @@
                         <li>Reminder automatici D-7/D-3/D-0</li>
                         <li>Supporto Standard</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC" id="buy-basic" data-i18n="pricing.basic.cta">Inizia con BASIC</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC"
+                        id="buy-basic" data-i18n="pricing.basic.cta">Inizia con BASIC</a>
                 </div>
                 <div class="price-card popular" data-reveal>
                     <div class="tag-popular">PIÙ SCELTO — CRESCITA</div>
@@ -789,8 +808,8 @@
                         <li>Supporto Prioritario H24</li>
                         <li>Grace Period 48h in caso di errore</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO"
-                        id="buy-pro" data-i18n="pricing.pro.cta">Domina con PRO</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO" id="buy-pro"
+                        data-i18n="pricing.pro.cta">Domina con PRO</a>
                 </div>
                 <div class="price-card" data-reveal>
                     <h3>ENTERPRISE</h3>
@@ -804,7 +823,8 @@
                         <li>Top Priority Tech Support</li>
                         <li>Emergency 24H Inclusa</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE" data-i18n="pricing.enterprise.cta">Vai ENTERPRISE</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE"
+                        data-i18n="pricing.enterprise.cta">Vai ENTERPRISE</a>
                 </div>
             </div>
         </div>
@@ -814,38 +834,45 @@
         <div class="container">
             <div class="section-header">
                 <h2 data-reveal data-i18n="adv.h2">Perché i Provider Scelgono SoftiBridge</h2>
-                <p data-reveal data-i18n="adv.p">Smetti di perdere clienti per problemi tecnici. Costruisci un business ricorrente e
+                <p data-reveal data-i18n="adv.p">Smetti di perdere clienti per problemi tecnici. Costruisci un business
+                    ricorrente e
                     scalabile.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv1.h3">📈 +40% Retention Media</h3>
-                    <p data-i18n="adv1.p">I reminder automatici a D-7, D-3 e D-0 riportano i clienti al rinnovo prima che la licenza scada.
+                    <p data-i18n="adv1.p">I reminder automatici a D-7, D-3 e D-0 riportano i clienti al rinnovo prima
+                        che la licenza scada.
                         Zero effort da parte tua.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv2.h3">🛡️ Zero Pirateria</h3>
-                    <p data-i18n="adv2.p">Sistema HMAC + Remote Kill Switch bloccano qualsiasi abuso. Il tuo bots e i tuoi segnali sono
+                    <p data-i18n="adv2.p">Sistema HMAC + Remote Kill Switch bloccano qualsiasi abuso. Il tuo bots e i
+                        tuoi segnali sono
                         protetti anche quando dormi.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv3.h3">💰 Revenue Passivo su 3 Livelli</h3>
-                    <p data-i18n="adv3.p">Ogni Admin WL che crei porta un 20% automatico su ogni sua vendita. I suoi affiliati portano un
+                    <p data-i18n="adv3.p">Ogni Admin WL che crei porta un 20% automatico su ogni sua vendita. I suoi
+                        affiliati portano un
                         ulteriore 10%. Il network lavora per te.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv4.h3">⚙️ Onboarding Cliente Guidato</h3>
-                    <p data-i18n="adv4.p">Dalla licenza al download EA fino al pagamento fattura: il cliente ha un flusso unico, chiaro e
+                    <p data-i18n="adv4.p">Dalla licenza al download EA fino al pagamento fattura: il cliente ha un
+                        flusso unico, chiaro e
                         riduce richieste di supporto ripetitive.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv5.h3">🧾 Fatture & Pagamenti Centralizzati</h3>
-                    <p data-i18n="adv5.p">Gestisci Stripe, bonifico e USDT TRON nello stesso pannello con verifica manuale, PDF fatture e
+                    <p data-i18n="adv5.p">Gestisci Stripe, bonifico e USDT TRON nello stesso pannello con verifica
+                        manuale, PDF fatture e
                         storico pagamenti tracciato.</p>
                 </div>
                 <div class="feature-box" data-reveal>
                     <h3 data-i18n="adv6.h3">📡 Controllo Operativo End-to-End</h3>
-                    <p data-i18n="adv6.p">Segnali, licenze, bridge EA, notifiche Telegram e audit log convivono nello stesso ecosistema per
+                    <p data-i18n="adv6.p">Segnali, licenze, bridge EA, notifiche Telegram e audit log convivono nello
+                        stesso ecosistema per
                         scalare senza caos operativo.</p>
                 </div>
             </div>
@@ -891,9 +918,18 @@
             min-width: 0;
         }
 
-        .demo-step:last-child { border-bottom: none; }
-        .demo-step:hover, .demo-step.active { background: rgba(0, 242, 255, 0.06); }
-        .demo-step.done { background: rgba(0, 230, 118, 0.05); }
+        .demo-step:last-child {
+            border-bottom: none;
+        }
+
+        .demo-step:hover,
+        .demo-step.active {
+            background: rgba(0, 242, 255, 0.06);
+        }
+
+        .demo-step.done {
+            background: rgba(0, 230, 118, 0.05);
+        }
 
         .demo-step-num {
             width: 34px;
@@ -907,14 +943,34 @@
             flex-shrink: 0;
         }
 
-        .demo-step.active .demo-step-num { background: var(--accent-primary); color: #02111a; }
-        .demo-step.done .demo-step-num { background: var(--green); color: #02110a; }
+        .demo-step.active .demo-step-num {
+            background: var(--accent-primary);
+            color: #02111a;
+        }
 
-        .demo-step-content h4 { font-size: 0.92rem; margin-bottom: 0.2rem; }
-        .demo-step-content p { font-size: 0.78rem; color: var(--text-dim); }
-        .demo-step-content { min-width: 0; }
+        .demo-step.done .demo-step-num {
+            background: var(--green);
+            color: #02110a;
+        }
+
+        .demo-step-content h4 {
+            font-size: 0.92rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .demo-step-content p {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        .demo-step-content {
+            min-width: 0;
+        }
+
         .demo-step-content h4,
-        .demo-step-content p { overflow-wrap: anywhere; }
+        .demo-step-content p {
+            overflow-wrap: anywhere;
+        }
 
         .demo-screen {
             padding: 1rem 1.1rem;
@@ -932,8 +988,14 @@
             min-width: 0;
         }
 
-        .demo-screen .line { opacity: 0.25; transition: opacity 0.25s ease; }
-        .demo-screen .line.show { opacity: 1; }
+        .demo-screen .line {
+            opacity: 0.25;
+            transition: opacity 0.25s ease;
+        }
+
+        .demo-screen .line.show {
+            opacity: 1;
+        }
 
         .admin-sales {
             padding: 6rem 0 5.5rem;
@@ -980,8 +1042,16 @@
             border-radius: 12px;
         }
 
-        .split-row strong { font-size: 0.8rem; letter-spacing: 0.5px; }
-        .split-row span { color: var(--text-dim); font-size: 0.78rem; }
+        .split-row strong {
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .split-row span {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+        }
+
         .split-pill {
             font-weight: 800;
             font-size: 0.8rem;
@@ -1007,8 +1077,8 @@
         }
 
         .admin-super-kpi .kpi {
-            border: 1px solid rgba(255,255,255,0.06);
-            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 12px;
             padding: 0.9rem;
         }
@@ -1039,8 +1109,8 @@
             align-items: flex-start;
             padding: 0.75rem;
             border-radius: 12px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.84rem;
         }
 
@@ -1058,7 +1128,7 @@
 
         .admin-price-card {
             background: rgba(8, 16, 40, 0.6);
-            border: 1px solid rgba(255,255,255,0.07);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 18px;
             padding: 1.25rem;
             display: flex;
@@ -1070,13 +1140,13 @@
 
         .admin-price-card:hover {
             transform: translateY(-4px);
-            border-color: rgba(0,242,255,0.22);
+            border-color: rgba(0, 242, 255, 0.22);
         }
 
         .admin-price-card.featured {
-            border-color: rgba(0,242,255,0.28);
-            box-shadow: 0 0 0 1px rgba(0,242,255,0.08) inset;
-            background: linear-gradient(180deg, rgba(0,242,255,0.06), rgba(8, 16, 40, 0.62));
+            border-color: rgba(0, 242, 255, 0.28);
+            box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.08) inset;
+            background: linear-gradient(180deg, rgba(0, 242, 255, 0.06), rgba(8, 16, 40, 0.62));
         }
 
         .admin-card-badge {
@@ -1085,8 +1155,8 @@
             margin-bottom: 0.8rem;
             padding: 0.3rem 0.6rem;
             border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
             color: var(--text-dim);
             font-size: 0.72rem;
             font-weight: 700;
@@ -1138,25 +1208,31 @@
         }
 
         @media (max-width: 968px) {
+
             .process-layout,
             .admin-hero {
                 grid-template-columns: 1fr;
             }
+
             .admin-checklist {
                 grid-template-columns: 1fr;
             }
+
             .admin-pricing-grid {
                 grid-template-columns: 1fr;
             }
+
             .admin-price-card {
                 max-width: 560px;
                 margin: 0 auto;
                 width: 100%;
             }
+
             .split-row {
                 grid-template-columns: 1fr;
                 align-items: flex-start;
             }
+
             .admin-super-kpi {
                 grid-template-columns: 1fr 1fr;
             }
@@ -1166,14 +1242,17 @@
             .admin-super-kpi {
                 grid-template-columns: 1fr;
             }
+
             .process-demo,
             .admin-sales {
                 padding: 4.5rem 0;
             }
+
             .demo-screen {
                 font-size: 0.76rem;
                 padding: 0.85rem;
             }
+
             .admin-price-card {
                 padding: 1rem;
                 border-radius: 16px;
@@ -1185,7 +1264,8 @@
         <div class="container">
             <div class="section-header">
                 <h2 data-reveal data-i18n="demo.h2">Come gira davvero il sistema (demo operativa)</h2>
-                <p data-reveal data-i18n="demo.p">Dalla landing al bot Telegram, fino all'EA e al revenue split del network: un flusso unico,
+                <p data-reveal data-i18n="demo.p">Dalla landing al bot Telegram, fino all'EA e al revenue split del
+                    network: un flusso unico,
                     verificabile e vendibile.</p>
             </div>
             <div class="process-layout">
@@ -1194,44 +1274,54 @@
                         <div class="demo-step-num">1</div>
                         <div class="demo-step-content">
                             <h4 data-i18n="demo.step1.h4">Acquisto piano da Landing</h4>
-                            <p data-i18n="demo.step1.p">L'utente sceglie il piano e avvia il checkout (backend-first, fallback demo se API offline).</p>
+                            <p data-i18n="demo.step1.p">L'utente sceglie il piano e avvia il checkout (backend-first,
+                                fallback demo se API offline).</p>
                         </div>
                     </div>
                     <div class="demo-step" data-step="1" onclick="goDemoStep(1)">
                         <div class="demo-step-num">2</div>
                         <div class="demo-step-content">
                             <h4 data-i18n="demo.step2.h4">Provisioning licenza e accesso</h4>
-                            <p data-i18n="demo.step2.p">Licenza generata, cliente registrato, dashboard e download EA pronti.</p>
+                            <p data-i18n="demo.step2.p">Licenza generata, cliente registrato, dashboard e download EA
+                                pronti.</p>
                         </div>
                     </div>
                     <div class="demo-step" data-step="2" onclick="goDemoStep(2)">
                         <div class="demo-step-num">3</div>
                         <div class="demo-step-content">
                             <h4 data-i18n="demo.step3.h4">Bridge EA / MT4-MT5</h4>
-                            <p data-i18n="demo.step3.p">Il bridge sincronizza queue, heartbeat e stato installazione tra backend e terminale.</p>
+                            <p data-i18n="demo.step3.p">Il bridge sincronizza queue, heartbeat e stato installazione tra
+                                backend e terminale.</p>
                         </div>
                     </div>
                     <div class="demo-step" data-step="3" onclick="goDemoStep(3)">
                         <div class="demo-step-num">4</div>
                         <div class="demo-step-content">
                             <h4 data-i18n="demo.step4.h4">Operativita' cliente da panel</h4>
-                            <p data-i18n="demo.step4.p">SL/TP, close, cancel e monitoraggio trading inviati al bridge dal pannello client.</p>
+                            <p data-i18n="demo.step4.p">SL/TP, close, cancel e monitoraggio trading inviati al bridge
+                                dal pannello client.</p>
                         </div>
                     </div>
                     <div class="demo-step" data-step="4" onclick="goDemoStep(4)">
                         <div class="demo-step-num">5</div>
                         <div class="demo-step-content">
                             <h4 data-i18n="demo.step5.h4">Revenue split e billing network</h4>
-                            <p data-i18n="demo.step5.p">L0/L1/L2, fatture, bonifici/USDT/Stripe e verifiche manuali nello stesso ecosistema.</p>
+                            <p data-i18n="demo.step5.p">L0/L1/L2, fatture, bonifici/USDT/Stripe e verifiche manuali
+                                nello stesso ecosistema.</p>
                         </div>
                     </div>
                 </div>
                 <div class="demo-screen" id="demo-screen">
-                    <span class="line show" id="dl-0" data-i18n="demo.line1">&gt; [LANDING] Checkout request created for tier=PRO ...</span>
-                    <span class="line" id="dl-1" data-i18n="demo.line2">&gt; [BACKEND] License + client dashboard provisioned ... OK</span>
-                    <span class="line" id="dl-2" data-i18n="demo.line3">&gt; [BRIDGE] MT4/MT5 heartbeat + state sync active ... OK</span>
-                    <span class="line" id="dl-3" data-i18n="demo.line4">&gt; [CLIENT] SET_SLTP / CLOSE / CANCEL command queued ... OK</span>
-                    <span class="line" id="dl-4" data-i18n="demo.line5">&gt; [BILLING] L0/L1/L2 split + invoice/payment workflow ... OK</span>
+                    <span class="line show" id="dl-0" data-i18n="demo.line1">&gt; [LANDING] Checkout request created for
+                        tier=PRO ...</span>
+                    <span class="line" id="dl-1" data-i18n="demo.line2">&gt; [BACKEND] License + client dashboard
+                        provisioned ... OK</span>
+                    <span class="line" id="dl-2" data-i18n="demo.line3">&gt; [BRIDGE] MT4/MT5 heartbeat + state sync
+                        active ... OK</span>
+                    <span class="line" id="dl-3" data-i18n="demo.line4">&gt; [CLIENT] SET_SLTP / CLOSE / CANCEL command
+                        queued ... OK</span>
+                    <span class="line" id="dl-4" data-i18n="demo.line5">&gt; [BILLING] L0/L1/L2 split + invoice/payment
+                        workflow ... OK</span>
                 </div>
             </div>
         </div>
@@ -1265,11 +1355,13 @@
     <section class="admin-sales" id="admin-pricing">
         <div class="container">
             <div class="section-header">
-                <div style="display:inline-flex;align-items:center;gap:0.6rem;padding:0.4rem 1rem;border-radius:999px;background:rgba(255,166,0,0.08);border:1px solid rgba(255,166,0,0.22);color:#ffb45d;font-size:0.75rem;font-weight:800;letter-spacing:1.4px;">
+                <div
+                    style="display:inline-flex;align-items:center;gap:0.6rem;padding:0.4rem 1rem;border-radius:999px;background:rgba(255,166,0,0.08);border:1px solid rgba(255,166,0,0.22);color:#ffb45d;font-size:0.75rem;font-weight:800;letter-spacing:1.4px;">
                     <span data-i18n="admin.badge">PER PROVIDER DI SEGNALI E ADMIN</span>
                 </div>
                 <h2 data-reveal data-i18n="admin.h2">Diventa Admin White Label del tuo Network</h2>
-                <p data-reveal data-i18n="admin.p">Gestisci clienti, licenze, rinnovi, pagamenti manuali e fatture in un pannello unificato.
+                <p data-reveal data-i18n="admin.p">Gestisci clienti, licenze, rinnovi, pagamenti manuali e fatture in un
+                    pannello unificato.
                     Crea affiliati e scala la sala segnali con struttura commerciale vera.</p>
             </div>
 
@@ -1279,17 +1371,20 @@
                     <div class="admin-split-grid">
                         <div class="split-row">
                             <strong data-i18n="admin.l0.title">L0 SUPER ADMIN</strong>
-                            <span data-i18n="admin.l0.desc">Controllo globale rete, fee policy, licenze master e supervisione billing.</span>
+                            <span data-i18n="admin.l0.desc">Controllo globale rete, fee policy, licenze master e
+                                supervisione billing.</span>
                             <span class="split-pill">20%</span>
                         </div>
                         <div class="split-row">
                             <strong data-i18n="admin.l1.title">L1 ADMIN WL</strong>
-                            <span data-i18n="admin.l1.desc">Vende ai clienti finali, gestisce CRM, licenze, fatture e supporto operativo.</span>
+                            <span data-i18n="admin.l1.desc">Vende ai clienti finali, gestisce CRM, licenze, fatture e
+                                supporto operativo.</span>
                             <span class="split-pill" style="background:#8b5cf6;color:#f5f3ff;">60-70%</span>
                         </div>
                         <div class="split-row">
                             <strong data-i18n="admin.l2.title">L2 AFFILIATI</strong>
-                            <span data-i18n="admin.l2.desc">Referral tracciati con codici dedicati, fee maturate e payout verificabili.</span>
+                            <span data-i18n="admin.l2.desc">Referral tracciati con codici dedicati, fee maturate e
+                                payout verificabili.</span>
                             <span class="split-pill" style="background:#22c55e;color:#052e16;">8-12%</span>
                         </div>
                     </div>
@@ -1298,12 +1393,18 @@
                     <div>
                         <h3 data-i18n="admin.why.h3">Perche' vende meglio di una semplice sala Telegram</h3>
                         <div class="admin-checklist">
-                            <div class="admin-check-item"><b>1</b><span data-i18n="admin.why.1">Licenze e accessi tracciati (anti-condivisione)</span></div>
-                            <div class="admin-check-item"><b>2</b><span data-i18n="admin.why.2">Fatture + pagamenti Stripe/Bonifico/USDT nello stesso flusso</span></div>
-                            <div class="admin-check-item"><b>3</b><span data-i18n="admin.why.3">Area client self-service con download e stato licenza</span></div>
-                            <div class="admin-check-item"><b>4</b><span data-i18n="admin.why.4">Gestione affiliati e fee payout con audit log</span></div>
-                            <div class="admin-check-item"><b>5</b><span data-i18n="admin.why.5">Bridge EA / MT4-MT5 e controllo operativo centralizzato</span></div>
-                            <div class="admin-check-item"><b>6</b><span data-i18n="admin.why.6">Scalabilita' da singolo provider a network multi-brand</span></div>
+                            <div class="admin-check-item"><b>1</b><span data-i18n="admin.why.1">Licenze e accessi
+                                    tracciati (anti-condivisione)</span></div>
+                            <div class="admin-check-item"><b>2</b><span data-i18n="admin.why.2">Fatture + pagamenti
+                                    Stripe/Bonifico/USDT nello stesso flusso</span></div>
+                            <div class="admin-check-item"><b>3</b><span data-i18n="admin.why.3">Area client self-service
+                                    con download e stato licenza</span></div>
+                            <div class="admin-check-item"><b>4</b><span data-i18n="admin.why.4">Gestione affiliati e fee
+                                    payout con audit log</span></div>
+                            <div class="admin-check-item"><b>5</b><span data-i18n="admin.why.5">Bridge EA / MT4-MT5 e
+                                    controllo operativo centralizzato</span></div>
+                            <div class="admin-check-item"><b>6</b><span data-i18n="admin.why.6">Scalabilita' da singolo
+                                    provider a network multi-brand</span></div>
                         </div>
                     </div>
                     <div class="admin-super-kpi">
@@ -1342,7 +1443,8 @@
                         <li data-i18n="admin.starter.f5">Affiliati L2 fino a 5</li>
                         <li data-i18n="admin.starter.f6">Billing/fatture centralizzate</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC" data-i18n="admin.starter.cta">Inizia con STARTER</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="BASIC"
+                        data-i18n="admin.starter.cta">Inizia con STARTER</a>
                 </div>
 
                 <div class="admin-price-card featured">
@@ -1359,13 +1461,15 @@
                         <li data-i18n="admin.growth.f5">Backup database e audit esteso</li>
                         <li data-i18n="admin.growth.f6">Priorita' supporto operativa</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO" data-i18n="admin.growth.cta">Domina con GROWTH</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-primary buy-btn" data-tier="PRO"
+                        data-i18n="admin.growth.cta">Domina con GROWTH</a>
                 </div>
 
                 <div class="admin-price-card">
                     <span class="admin-card-badge">SUPER ADMIN / ENTERPRISE</span>
                     <h3>ENTERPRISE</h3>
-                    <div class="admin-plan-sub" data-i18n="admin.enterprise.sub">1000+ clienti / multi-brand / struttura L0-L1-L2</div>
+                    <div class="admin-plan-sub" data-i18n="admin.enterprise.sub">1000+ clienti / multi-brand / struttura
+                        L0-L1-L2</div>
                     <div class="admin-price-main">EUR 1.990 <span>setup</span></div>
                     <div class="admin-recurring" data-i18n="admin.enterprise.recurring">+ EUR 390 / mese</div>
                     <ul class="price-list">
@@ -1376,7 +1480,8 @@
                         <li data-i18n="admin.enterprise.f5">SLA prioritaria e supporto dedicato</li>
                         <li data-i18n="admin.enterprise.f6">Base ideale per ruolo Super Admin</li>
                     </ul>
-                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE" data-i18n="admin.enterprise.cta">Vai ENTERPRISE</a>
+                    <a href="https://t.me/softi_bridge_bot" class="btn-secondary buy-btn" data-tier="ENTERPRISE"
+                        data-i18n="admin.enterprise.cta">Vai ENTERPRISE</a>
                 </div>
             </div>
         </div>
@@ -1407,28 +1512,100 @@
                 investimento, il tuo livello di esperienza e la tua propensione al rischio. SoftiBridge declina ogni
                 responsabilità per perdite di capitale derivanti dall'utilizzo del software.
             </div>
-            <p style="color: var(--text-dim); font-size: 0.85rem;" data-i18n="footer.copy" data-i18n-mode="html">&copy; 2026 Softi Trading (L0-Global Control). Tutti
+            <p style="color: var(--text-dim); font-size: 0.85rem;" data-i18n="footer.copy" data-i18n-mode="html">&copy;
+                2026 Softi Trading (L0-Global Control). Tutti
                 i diritti riservati. <br> Powered by SoftiBridge Antigravity Ecosystem.</p>
         </div>
     </footer>
 
     <style>
         /* Landing polish / anti-overlap responsive overrides */
-        .section-header { max-width: 980px; margin-inline: auto; }
-        .pricing-grid { align-items: stretch; }
-        .price-card { height: 100%; display: flex; flex-direction: column; }
-        .price-card .price-list { flex: 1; }
-        .features-grid, .pricing-grid, .admin-pricing-grid, .process-layout, .admin-hero { min-width: 0; }
-        .feature-box, .price-card, .admin-price-card, .split-row { min-width: 0; }
-        .feature-box h3, .feature-box p, .price-card h3, .price-list li, .split-row span { overflow-wrap: anywhere; }
-        .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.9rem 1.4rem; }
-        .footer-links a { white-space: nowrap; }
-        .hero-buttons { display: flex; gap: 0.9rem; flex-wrap: wrap; justify-content: center; }
-        .hero-buttons a { text-align: center; }
-        .trust-bar { display: grid; grid-template-columns: repeat(4, minmax(120px,1fr)); gap: 0.8rem; }
-        .auth-hub-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-        .auth-box { border-color: rgba(0, 242, 255, 0.2); }
-        .auth-form-grid { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+        .section-header {
+            max-width: 980px;
+            margin-inline: auto;
+        }
+
+        .pricing-grid {
+            align-items: stretch;
+        }
+
+        .price-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-card .price-list {
+            flex: 1;
+        }
+
+        .features-grid,
+        .pricing-grid,
+        .admin-pricing-grid,
+        .process-layout,
+        .admin-hero {
+            min-width: 0;
+        }
+
+        .feature-box,
+        .price-card,
+        .admin-price-card,
+        .split-row {
+            min-width: 0;
+        }
+
+        .feature-box h3,
+        .feature-box p,
+        .price-card h3,
+        .price-list li,
+        .split-row span {
+            overflow-wrap: anywhere;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.9rem 1.4rem;
+        }
+
+        .footer-links a {
+            white-space: nowrap;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hero-buttons a {
+            text-align: center;
+        }
+
+        .trust-bar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .auth-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .auth-box {
+            border-color: rgba(0, 242, 255, 0.2);
+        }
+
+        .auth-form-grid {
+            display: grid;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+
         .auth-form-grid input {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1438,6 +1615,7 @@
             font-family: inherit;
             outline: none;
         }
+
         .auth-status {
             margin-top: 1rem;
             padding: 0.8rem 1rem;
@@ -1447,28 +1625,94 @@
             color: var(--text-dim);
             font-size: 0.86rem;
         }
-        .trust-stat { min-width: 0; }
-        #admin-pricing .pricing-grid { align-items: stretch; }
-        #admin-pricing .price-card { min-height: 100%; }
-        @media (max-width: 1100px) {
-            .pricing-grid { grid-template-columns: 1fr; }
-            .trust-bar { grid-template-columns: repeat(2, minmax(120px,1fr)); }
-            .admin-hero { gap: 1rem; }
-            .auth-hub-grid { grid-template-columns: 1fr; }
+
+        .trust-stat {
+            min-width: 0;
         }
+
+        #admin-pricing .pricing-grid {
+            align-items: stretch;
+        }
+
+        #admin-pricing .price-card {
+            min-height: 100%;
+        }
+
+        @media (max-width: 1100px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-bar {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+
+            .admin-hero {
+                gap: 1rem;
+            }
+
+            .auth-hub-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 760px) {
-            .hero { padding-top: 7.5rem; }
-            .hero h1 { font-size: 2.1rem !important; line-height: 1.08; }
-            .hero p { font-size: 1rem !important; }
-            .hero-buttons { flex-direction: column; align-items: stretch; }
-            .hero-buttons .btn-primary, .hero-buttons .btn-secondary { width: 100%; justify-content: center; }
-            .trust-bar { grid-template-columns: 1fr 1fr; }
-            .container { padding-left: 1rem; padding-right: 1rem; }
-            .demo-step { flex-direction: column; gap: 0.6rem; }
-            .demo-step-num { flex-shrink: 0; }
-            .admin-summary-card, .admin-super-card { padding: 1rem; }
-            .admin-summary-card h3, .admin-super-card h3 { line-height: 1.2; }
-            .footer-links { flex-direction: column; align-items: center; }
+            .hero {
+                padding-top: 7.5rem;
+            }
+
+            .hero h1 {
+                font-size: 2.1rem !important;
+                line-height: 1.08;
+            }
+
+            .hero p {
+                font-size: 1rem !important;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .trust-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .demo-step {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+
+            .demo-step-num {
+                flex-shrink: 0;
+            }
+
+            .admin-summary-card,
+            .admin-super-card {
+                padding: 1rem;
+            }
+
+            .admin-summary-card h3,
+            .admin-super-card h3 {
+                line-height: 1.2;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 
