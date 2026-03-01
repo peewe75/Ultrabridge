@@ -775,14 +775,16 @@
                 <div class="feature-box auth-box">
                     <h3>Area Clienti (Clerk)</h3>
                     <p>Accedi alla tua dashboard personale per gestire licenze e download.</p>
-                    <div class="auth-form-grid">
-                        <input id="hub-login-email" type="email" placeholder="Email cliente" />
-                        <input id="hub-login-password" type="password" placeholder="Password" />
-                        <button id="hub-login-btn" class="btn-primary" type="button">Accedi ora</button>
-                    </div>
-                    <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; color: var(--text-dim);">
-                        Non hai un account? <a href="#pricing" style="color: var(--accent-primary);">Acquista una
-                            licenza</a>
+                    <div id="clerk-auth-container" class="auth-box-content">
+                        <div id="hub-clerk-ui"
+                            style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                            <div class="loader-simple"></div>
+                        </div>
+                        <div id="hub-clerk-fallback" class="auth-form-grid" style="display: none;">
+                            <input id="hub-login-email" type="email" placeholder="Email cliente" />
+                            <input id="hub-login-password" type="password" placeholder="Password" />
+                            <button id="hub-login-btn" class="btn-primary" type="button">Accedi ora</button>
+                        </div>
                     </div>
                 </div>
                 <div class="feature-box auth-box">
@@ -1949,15 +1951,41 @@
             try {
                 const apiBase = getLandingApiBase();
                 const res = await fetch(`${apiBase}/public/auth/providers`);
-                if (!res.ok) return clerkState;
+                if (!res.ok) throw new Error('Failed to fetch providers');
                 const payload = await res.json();
                 const provider = payload?.clerk || {};
+
                 if (provider.enabled && provider.publishable_key) {
                     clerkState.enabled = true;
                     clerkState.publishableKey = provider.publishable_key;
                     await loadClerkRuntime(provider.publishable_key);
+
+                    // Se siamo qui, Clerk è pronto. Montiamo la UI.
+                    const uiContainer = document.getElementById('hub-clerk-ui');
+                    if (uiContainer) {
+                        uiContainer.innerHTML = ''; // Rimuovi loader
+                        window.Clerk.mountSignIn(uiContainer, {
+                            appearance: {
+                                elements: {
+                                    card: { boxShadow: 'none', background: 'transparent' },
+                                    headerTitle: { color: '#fff' },
+                                    headerSubtitle: { color: 'var(--text-dim)' },
+                                    socialButtonsBlockButton: { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' },
+                                    formButtonPrimary: { background: 'var(--accent-primary)', color: '#fff' },
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Fallback al form custom
+                    document.getElementById('hub-clerk-ui').style.display = 'none';
+                    document.getElementById('hub-clerk-fallback').style.display = 'grid';
                 }
-            } catch (e) { console.error('Clerk init error', e); }
+            } catch (e) {
+                console.error('Clerk init error', e);
+                document.getElementById('hub-clerk-ui').style.display = 'none';
+                document.getElementById('hub-clerk-fallback').style.display = 'grid';
+            }
             return clerkState;
         };
 
