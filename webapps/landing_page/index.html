@@ -1890,13 +1890,37 @@
         }
 
         function dashboardRouteByRole(role) {
-            const clientUrl = localStorage.getItem('softibridge_client_url') || '/dashboard/client/';
-            const adminUrl = localStorage.getItem('softibridge_admin_url') || '/dashboard/admin/';
-            const superUrl = localStorage.getItem('softibridge_super_url') || '/dashboard/super-admin/';
+            const clientUrl = localStorage.getItem('softibridge_client_url') || '../client_webapp/index.html';
+            const adminUrl = localStorage.getItem('softibridge_admin_url') || '../admin_webapp/index.html';
+            const superUrl = localStorage.getItem('softibridge_super_url') || '../superadmin_webapp/index.html';
 
             if (role === 'SUPER_ADMIN') return superUrl;
             if (role === 'ADMIN_WL') return adminUrl;
             return clientUrl;
+        }
+
+        let clerkSyncing = false;
+        async function handleClerkSession() {
+            if (clerkSyncing || !window.Clerk || !window.Clerk.session) return;
+            clerkSyncing = true;
+            try {
+                const uiContainer = document.getElementById('hub-clerk-ui');
+                if (uiContainer) {
+                    uiContainer.innerHTML = `<div style="color: #00f2ff; text-align: center; padding: 1rem;">Accesso completato. Caricamento profilo...</div>`;
+                }
+                const token = await window.Clerk.session.getToken();
+                const apiBase = getLandingApiBase();
+                const me = await fetchMe(token);
+                persistRoleToken(me.role, token, apiBase);
+                window.location.href = dashboardRouteByRole(me.role);
+            } catch (err) {
+                console.error('Failed to sync Clerk session:', err);
+                const uiContainer = document.getElementById('hub-clerk-ui');
+                if (uiContainer) {
+                    uiContainer.innerHTML = `<div style="color: #ff4d6d; text-align: center; padding: 1rem;">Errore caricamento profilo. Riprova o ricarica la pagina.</div>`;
+                }
+                clerkSyncing = false;
+            }
         }
 
         function openSetup() {
@@ -1977,6 +2001,12 @@
                     clerkState.publishableKey = provider.publishable_key;
                     await loadClerkRuntime(provider.publishable_key);
 
+                    window.Clerk.addListener(({ session }) => {
+                        if (session) {
+                            handleClerkSession();
+                        }
+                    });
+
                     // Se siamo qui, Clerk è pronto. Montiamo un bottone pulito.
                     const uiContainer = document.getElementById('hub-clerk-ui');
                     if (uiContainer) {
@@ -1991,10 +2021,14 @@
                         btn.style.justifyContent = 'center';
                         btn.style.gap = '0.75rem';
                         btn.style.fontSize = '1.05rem';
-                        btn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Accedi / Registrati in Sicurezza`;
+                        btn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Area Personale / Login`;
 
                         btn.onclick = () => {
-                            window.Clerk.openSignIn();
+                            if (window.Clerk.session) {
+                                handleClerkSession();
+                            } else {
+                                window.Clerk.openSignIn();
+                            }
                         };
 
                         uiContainer.appendChild(btn);
