@@ -2003,8 +2003,19 @@
                 }
             } catch (e) {
                 console.error('Clerk init error', e);
-                document.getElementById('hub-clerk-ui').style.display = 'none';
-                document.getElementById('hub-clerk-fallback').style.display = 'grid';
+                const uiContainer = document.getElementById('hub-clerk-ui');
+                if (uiContainer) uiContainer.style.display = 'none';
+
+                const fallbackContainer = document.getElementById('hub-clerk-fallback');
+                if (fallbackContainer) {
+                    fallbackContainer.style.display = 'grid';
+                    const errEl = document.createElement('div');
+                    errEl.style.color = '#ff4d6d';
+                    errEl.style.fontSize = '0.9rem';
+                    errEl.style.marginBottom = '1rem';
+                    errEl.textContent = `Errore inizializzazione Clerk: ${e.message}. Verifica console per dettagli.`;
+                    fallbackContainer.prepend(errEl);
+                }
             }
             return clerkState;
         };
