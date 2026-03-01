@@ -782,7 +782,7 @@
                     <p>Accedi alla tua dashboard personale per gestire licenze e download.</p>
                     <div id="clerk-auth-container" class="auth-box-content">
                         <div id="hub-clerk-ui"
-                            style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                            style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
                             <div class="loader-simple"></div>
                         </div>
                         <div id="hub-clerk-fallback" class="auth-form-grid" style="display: none;">
@@ -1974,23 +1974,27 @@
                     clerkState.publishableKey = provider.publishable_key;
                     await loadClerkRuntime(provider.publishable_key);
 
-                    // Se siamo qui, Clerk è pronto. Montiamo la UI.
+                    // Se siamo qui, Clerk è pronto. Montiamo un bottone pulito.
                     const uiContainer = document.getElementById('hub-clerk-ui');
                     if (uiContainer) {
                         uiContainer.innerHTML = ''; // Rimuovi loader
-                        window.Clerk.mountSignIn(uiContainer, {
-                            appearance: {
-                                variables: {
-                                    colorPrimary: '#00f2ff',
-                                    colorBackground: 'transparent',
-                                    colorText: '#f0f4ff',
-                                    colorInputText: '#f0f4ff',
-                                    colorInputBackground: '#081028',
-                                    colorTextSecondary: '#7a8ba8',
-                                    fontFamily: 'Inter, sans-serif'
-                                }
-                            }
-                        });
+
+                        const btn = document.createElement('button');
+                        btn.className = 'btn-primary';
+                        btn.style.width = '100%';
+                        btn.style.padding = '1rem';
+                        btn.style.display = 'flex';
+                        btn.style.alignItems = 'center';
+                        btn.style.justifyContent = 'center';
+                        btn.style.gap = '0.75rem';
+                        btn.style.fontSize = '1.05rem';
+                        btn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Accedi / Registrati in Sicurezza`;
+
+                        btn.onclick = () => {
+                            window.Clerk.openSignIn();
+                        };
+
+                        uiContainer.appendChild(btn);
                     }
                 } else {
                     // Fallback al form custom
