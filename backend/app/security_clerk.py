@@ -39,7 +39,9 @@ def _invalidate_jwks_cache() -> None:
 
 
 def _http_json(url: str, headers: dict[str, str] | None = None, timeout: float = 5.0) -> dict:
-    req = Request(url=url, headers=headers or {}, method="GET")
+    req_headers = headers or {}
+    req_headers.setdefault("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+    req = Request(url=url, headers=req_headers, method="GET")
     try:
         with urlopen(req, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8"))
