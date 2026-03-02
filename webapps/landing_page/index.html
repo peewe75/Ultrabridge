@@ -1941,9 +1941,9 @@
         }
 
         function dashboardRouteByRole(role) {
-            const clientUrl = localStorage.getItem('softibridge_client_url') || '../client_webapp/index.html';
-            const adminUrl = localStorage.getItem('softibridge_admin_url') || '../admin_webapp/index.html';
-            const superUrl = localStorage.getItem('softibridge_super_url') || '../superadmin_webapp/index.html';
+            const clientUrl = localStorage.getItem('softibridge_client_url') || '/dashboard';
+            const adminUrl = localStorage.getItem('softibridge_admin_url') || '/admin';
+            const superUrl = localStorage.getItem('softibridge_super_url') || '/superadmin';
 
             if (role === 'SUPER_ADMIN') return superUrl;
             if (role === 'ADMIN_WL') return adminUrl;
