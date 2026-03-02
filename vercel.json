@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/api/index.py"
+            "destination": "https://ultrabot-ybl3.onrender.com/api/$1"
         },
         {
             "source": "/dashboard/client/(.*)",
