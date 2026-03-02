@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 # Add the project root and the backend directory to sys.path
+# This file is in /api/index.py, so parents[1] is the project root
 root_dir = Path(__file__).resolve().parents[1]
 backend_dir = root_dir / "backend"
 sys.path.append(str(backend_dir))
