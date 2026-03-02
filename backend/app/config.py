@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     clerk_jwks_url: str = Field(default="", alias="CLERK_JWKS_URL")
     clerk_audience: str = Field(default="", alias="CLERK_AUDIENCE")
     clerk_api_url: str = Field(default="https://api.clerk.com", alias="CLERK_API_URL")
+    clerk_webhook_secret: str = Field(default="", alias="CLERK_WEBHOOK_SECRET")
     ea_hmac_secret: str = Field(default="change-me-ea", alias="EA_HMAC_SECRET")
 
     telegram_bot_username: str = Field(default="@softibridge", alias="TELEGRAM_BOT_USERNAME")

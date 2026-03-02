@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 
 from app.config import get_settings
 
@@ -29,6 +29,13 @@ _JWKS_CACHE_URL: str | None = None
 _JWKS_CACHE_KEYS: dict[str, dict[str, object]] = {}
 _JWKS_FETCHED_AT: float = 0.0
 _JWKS_TTL_SECONDS = 300
+
+
+def _invalidate_jwks_cache() -> None:
+    global _JWKS_CACHE_URL, _JWKS_CACHE_KEYS, _JWKS_FETCHED_AT
+    _JWKS_CACHE_URL = None
+    _JWKS_CACHE_KEYS = {}
+    _JWKS_FETCHED_AT = 0.0
 
 
 def _http_json(url: str, headers: dict[str, str] | None = None, timeout: float = 5.0) -> dict:
@@ -133,7 +140,7 @@ def verify_clerk_bearer_token(token: str) -> ClerkIdentity:
         raise ClerkVerificationError("JWT senza kid")
     key = jwks.get(str(kid))
     if not key:
-        _JWKS_FETCHED_AT = 0.0
+        _invalidate_jwks_cache()
         jwks = _load_jwks()
         key = jwks.get(str(kid))
     if not key:
@@ -141,6 +148,7 @@ def verify_clerk_bearer_token(token: str) -> ClerkIdentity:
 
     decode_kwargs = {
         "algorithms": ["RS256"],
+        "leeway": 10,
         "options": {
             "verify_aud": bool((s.clerk_audience or "").strip()),
             "verify_iss": bool(issuer),
@@ -152,6 +160,8 @@ def verify_clerk_bearer_token(token: str) -> ClerkIdentity:
         decode_kwargs["audience"] = s.clerk_audience.strip()
     try:
         claims = jwt.decode(token, key, **decode_kwargs)
+    except ExpiredSignatureError as exc:
+        raise ClerkVerificationError("Token Clerk scaduto") from exc
     except JWTError as exc:
         raise ClerkVerificationError("Token Clerk non valido") from exc
 

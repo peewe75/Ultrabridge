@@ -10,7 +10,7 @@ import uuid
 from pathlib import Path
 
 from app.models import AdminPlan, Download, Plan
-from app.routers import admin, auth, bridge, client, demo, ea, files, health, notifications, preview, public, setup, signals, stripe_webhooks, telegram
+from app.routers import admin, auth, bridge, clerk_webhooks, client, demo, ea, files, health, notifications, preview, public, setup, signals, stripe_webhooks, telegram
 from app.services.files import ensure_demo_download_files
 from app.services.position_monitor import start_position_monitor
 
@@ -206,6 +206,7 @@ app.include_router(signals.router, prefix=settings.api_prefix)
 app.include_router(setup.router, prefix=settings.api_prefix)
 app.include_router(telegram.router, prefix=settings.api_prefix)
 app.include_router(stripe_webhooks.router, prefix=settings.api_prefix)
+app.include_router(clerk_webhooks.router, prefix=settings.api_prefix)
 app.include_router(preview.router)
 
 
