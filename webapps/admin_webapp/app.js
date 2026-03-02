@@ -28,7 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function detectInitialApiBase() {
         const qsApi = new URLSearchParams(window.location.search).get('api');
-        const stored = localStorage.getItem(API_BASE_STORAGE_KEY);
+        let stored = localStorage.getItem(API_BASE_STORAGE_KEY);
+
+        // Clean up old development tunnels/residues
+        if (stored && (stored.includes('trycloudflare.com') || stored.includes('tuo-vps-ip'))) {
+            stored = null;
+            localStorage.removeItem(API_BASE_STORAGE_KEY);
+        }
+
         const origin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '';
         const originBased = origin ? `${origin}/api` : '';
         const candidate = qsApi || stored;
@@ -374,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         method: 'POST',
                         body: JSON.stringify({ email: vals.loginEmail, password: vals.loginPassword, role: 'ADMIN_WL' }),
                     });
-                } catch (_) {}
+                } catch (_) { }
             }
             const tok = await apiFetch('/auth/login', {
                 method: 'POST',
@@ -2086,7 +2093,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `softibridge_admin_fee_report_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `softibridge_admin_fee_report_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -2323,7 +2330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="code">${admin.id}</span></td>
                 <td><strong>${admin.brand}</strong></td>
                 <td style="color: var(--text-dim); font-size:0.85rem;">${admin.name || '—'}<div style="font-size:.72rem;opacity:.7;">${escapeHtml(admin.plan_code || '')}</div></td>
-                <td><span class="status-badge ${String(admin.status||'').toUpperCase()==='ACTIVE' ? 'active' : (String(admin.status||'').toUpperCase().includes('GRACE') ? 'warning' : 'revoked')}">${admin.status}</span></td>
+                <td><span class="status-badge ${String(admin.status || '').toUpperCase() === 'ACTIVE' ? 'active' : (String(admin.status || '').toUpperCase().includes('GRACE') ? 'warning' : 'revoked')}">${admin.status}</span></td>
                 <td><strong>${(Number(admin.fee_pct || 0) * 100).toFixed(0)}%</strong> <span style="opacity:0.5; font-size:0.8rem;">(L0 prende ${Math.max(0, ((1 - Number(admin.fee_pct || 0) - 0.10) * 100)).toFixed(0)}%)</span></td>
                 <td><span class="status-badge">${admin.affiliates.length} attivi</span>${typeof admin.clients_count === 'number' ? `<div style="font-size:.72rem;color:var(--text-dim);">${admin.clients_count} clienti</div>` : ''}</td>
                 <td>€${Number(admin.volume || 0).toLocaleString('it-IT', { maximumFractionDigits: 0 })}</td>
@@ -2897,11 +2904,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="code">${r.invoice?.invoice_number || '-'}</span>${r.invoice?.pdf_url ? `<div><a href="${r.invoice.pdf_url}" target="_blank" style="font-size:0.72rem; color:var(--accent);">PDF</a></div>` : ''}${r.proof_url ? `<div><a href="${r.proof_url}" target="_blank" style="font-size:0.72rem; color:#7fffd4;">Ricevuta</a></div>` : ''}</td>
                 <td><span class="tag">${r.method}</span></td>
                 <td style="font-family:monospace; font-size:0.76rem;">${r.reference_code || '-'}</td>
-                <td>${r.submitted_currency || (r.invoice?.currency || 'EUR')} ${typeof r.submitted_amount_cents === 'number' ? (r.submitted_amount_cents/100).toFixed(2) : (r.invoice?.total_cents ? (r.invoice.total_cents/100).toFixed(2) : '-')}</td>
-                <td><span class="status-badge ${String(r.status||'').toUpperCase()==='APPROVED' ? 'active' : (String(r.status||'').toUpperCase()==='REJECTED' ? 'revoked' : 'warning')}">${r.status}</span></td>
+                <td>${r.submitted_currency || (r.invoice?.currency || 'EUR')} ${typeof r.submitted_amount_cents === 'number' ? (r.submitted_amount_cents / 100).toFixed(2) : (r.invoice?.total_cents ? (r.invoice.total_cents / 100).toFixed(2) : '-')}</td>
+                <td><span class="status-badge ${String(r.status || '').toUpperCase() === 'APPROVED' ? 'active' : (String(r.status || '').toUpperCase() === 'REJECTED' ? 'revoked' : 'warning')}">${r.status}</span></td>
                 <td style="display:flex; gap:6px; flex-wrap:wrap;">
-                    ${String(r.status||'').toUpperCase() === 'PENDING' ? `<button class="btn btn-sm btn-secondary" onclick="adminApproveManualPayment('${r.id}')">✅ Approva</button>` : ''}
-                    ${String(r.status||'').toUpperCase() === 'PENDING' ? `<button class="btn btn-sm btn-warning" onclick="adminRejectManualPayment('${r.id}')">❌ Rifiuta</button>` : ''}
+                    ${String(r.status || '').toUpperCase() === 'PENDING' ? `<button class="btn btn-sm btn-secondary" onclick="adminApproveManualPayment('${r.id}')">✅ Approva</button>` : ''}
+                    ${String(r.status || '').toUpperCase() === 'PENDING' ? `<button class="btn btn-sm btn-warning" onclick="adminRejectManualPayment('${r.id}')">❌ Rifiuta</button>` : ''}
                     <button class="btn btn-sm btn-secondary" onclick="alert('Dettaglio pagamento manuale: ${r.id}')">👁️</button>
                 </td>
             </tr>
@@ -2939,8 +2946,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="code">${escapeHtml(adminId)}</span><div style="font-size:.72rem;color:var(--text-dim);">${escapeHtml(adminBrand)}</div></td>
                     <td><span class="code">${escapeHtml(r.invoice?.invoice_number || '-')}</span></td>
                     <td><span class="tag">${escapeHtml(method || '-')}</span></td>
-                    <td>${escapeHtml(r.currency || 'EUR')} ${(Number(r.amount_cents || 0)/100).toFixed(2)}</td>
-                    <td><span class="status-badge ${String(r.status||'').toUpperCase()==='PAID' ? 'active' : (String(r.status||'').includes('REJECT') ? 'revoked' : 'warning')}">${escapeHtml(r.status || '-')}</span></td>
+                    <td>${escapeHtml(r.currency || 'EUR')} ${(Number(r.amount_cents || 0) / 100).toFixed(2)}</td>
+                    <td><span class="status-badge ${String(r.status || '').toUpperCase() === 'PAID' ? 'active' : (String(r.status || '').includes('REJECT') ? 'revoked' : 'warning')}">${escapeHtml(r.status || '-')}</span></td>
                     <td style="font-size:.76rem; color:var(--text-dim);">${escapeHtml(details)}</td>
                 </tr>`;
             }).join('');
@@ -3069,7 +3076,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${r.pdf_url ? `<a class="btn btn-sm btn-secondary" href="${r.pdf_url}" target="_blank">📄 PDF</a>` : "<button class=\"btn btn-sm btn-warning\" onclick=\"alert('Generazione PDF fee da implementare nel backend fiscale network.')\">🛠️ Genera</button>"}
                     ${r.source === 'BACKEND' ? `<button class="btn btn-sm btn-secondary" onclick="adminInvoiceSend('${r.invoice_number}')">📨 Invia</button>` : ''}
                     ${r.source === 'BACKEND' && r.payable ? `<button class="btn btn-sm" style="background:rgba(0,242,255,0.12); border:1px solid rgba(0,242,255,0.25); color:var(--accent);" onclick="adminInvoicePayLink('${r.invoice_number}')">💳 Link</button>` : ''}
-                    ${r.source === 'BACKEND' && String(r.status||'').toUpperCase() !== 'PAID' ? `<button class="btn btn-sm btn-warning" onclick="adminInvoiceMarkPaid('${r.invoice_number}')">✅ Segna pagata</button>` : ''}
+                    ${r.source === 'BACKEND' && String(r.status || '').toUpperCase() !== 'PAID' ? `<button class="btn btn-sm btn-warning" onclick="adminInvoiceMarkPaid('${r.invoice_number}')">✅ Segna pagata</button>` : ''}
                 </td>
             </tr>
         `).join('');

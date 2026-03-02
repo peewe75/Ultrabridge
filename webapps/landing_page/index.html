@@ -1853,7 +1853,12 @@
         function getLandingApiBase() {
             const fromQuery = new URLSearchParams(window.location.search).get('api');
             let fromStorage = localStorage.getItem('softibridge_api_base');
-            if (fromStorage && fromStorage.includes('tuo-vps-ip')) fromStorage = null;
+
+            // Clean up old development tunnels/residues
+            if (fromStorage && (fromStorage.includes('trycloudflare.com') || fromStorage.includes('tuo-vps-ip'))) {
+                fromStorage = null;
+                localStorage.removeItem('softibridge_api_base');
+            }
 
             const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const originApi = `${window.location.origin}/api`;
@@ -1865,7 +1870,7 @@
                 // If user configured the backend via the Setup gear, respect it!
                 base = fromStorage;
             } else if (!isLocal && window.location.origin !== 'null') {
-                // Default to same origin if not local
+                // Default to same origin if not local (e.g. ultrabot.space)
                 base = originApi;
             } else {
                 base = 'http://127.0.0.1:8000/api';

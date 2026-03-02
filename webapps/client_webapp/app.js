@@ -28,7 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function detectInitialApiBase() {
         const qsApi = new URLSearchParams(window.location.search).get('api');
-        const stored = localStorage.getItem(API_BASE_STORAGE_KEY);
+        let stored = localStorage.getItem(API_BASE_STORAGE_KEY);
+
+        // Clean up old development tunnels/residues
+        if (stored && (stored.includes('trycloudflare.com') || stored.includes('tuo-vps-ip'))) {
+            stored = null;
+            localStorage.removeItem(API_BASE_STORAGE_KEY);
+        }
+
         const origin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '';
         const originBased = origin ? `${origin}/api` : '';
         const candidate = qsApi || stored;
