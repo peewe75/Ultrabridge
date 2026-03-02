@@ -1861,11 +1861,14 @@
             let base;
             if (fromQuery) {
                 base = fromQuery;
+            } else if (fromStorage) {
+                // If user configured the backend via the Setup gear, respect it!
+                base = fromStorage;
             } else if (!isLocal && window.location.origin !== 'null') {
-                // If served from a real domain (like Cloudflare tunnel), use that domain!
+                // Default to same origin if not local
                 base = originApi;
             } else {
-                base = fromStorage || 'http://127.0.0.1:8000/api';
+                base = 'http://127.0.0.1:8000/api';
             }
 
             base = base.trim();
