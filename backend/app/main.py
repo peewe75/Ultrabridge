@@ -27,8 +27,9 @@ else:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins or ["*"],
-    allow_credentials=False,
+    allow_origins=allow_origins if allow_origins != ["*"] else [],
+    allow_origin_regex=".*" if allow_origins == ["*"] else None,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
