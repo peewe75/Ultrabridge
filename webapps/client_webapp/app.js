@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return normalized;
         }
-        if (/127\.0\.0\.1:8080|localhost:8080/i.test(origin)) {
+        if (origin.includes('127.0.0.1') || origin.includes('localhost')) {
             return normalizeApiBase('http://127.0.0.1:8000/api');
         }
         return normalizeApiBase(originBased || 'http://127.0.0.1:8000/api');

@@ -1873,7 +1873,13 @@
                 // Default to same origin if not local (e.g. ultrabot.space)
                 base = originApi;
             } else {
-                base = 'http://127.0.0.1:8000/api';
+                if (window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) {
+                    base = 'http://127.0.0.1:8000/api';
+                } else if (window.location.origin && window.location.origin !== 'null') {
+                    base = `${window.location.origin}/api`;
+                } else {
+                    base = 'http://127.0.0.1:8000/api';
+                }
             }
 
             base = base.trim();

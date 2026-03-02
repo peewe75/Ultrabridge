@@ -58,7 +58,11 @@
   }
 
   function defaultApiBase() {
-    return "http://127.0.0.1:8000/api";
+    const origin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '';
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return "http://127.0.0.1:8000/api";
+    }
+    return origin ? `${origin}/api` : "http://127.0.0.1:8000/api";
   }
 
   function loadPersistedApiBase() {
@@ -96,7 +100,7 @@
     el.textContent = online ? "Autenticato" : "Non connesso";
     el.className = `state-pill ${online ? "online" : "offline"}`;
     $("login-state-box").textContent = online
-      ? `Token presente. ${state.me ? `Utente: ${state.me.email} (${state.me.role})` : "Verifica /auth/me in corso..."}` 
+      ? `Token presente. ${state.me ? `Utente: ${state.me.email} (${state.me.role})` : "Verifica /auth/me in corso..."}`
       : "Non autenticato.";
   }
 
@@ -212,7 +216,7 @@
     const s = String(status || "").toUpperCase();
     const cls = s.includes("PAID") || s === "ACTIVE" || s === "APPROVED" ? "active"
       : (s.includes("PENDING") || s.includes("GRACE") ? "pending"
-      : (s.includes("REJECT") || s.includes("SUSP") || s.includes("REVOK") ? "danger" : "muted"));
+        : (s.includes("REJECT") || s.includes("SUSP") || s.includes("REVOK") ? "danger" : "muted"));
     return `<span class="status-badge ${cls}">${s || "N/D"}</span>`;
   }
 
@@ -234,8 +238,8 @@
     $("invoice-client-id").innerHTML = options;
   }
 
-    function renderDashboard() {
-        const s = state.summary || {};
+  function renderDashboard() {
+    const s = state.summary || {};
     $("kpi-clients").textContent = s.clients_total ?? 0;
     $("kpi-licenses").textContent = s.licenses_total ?? 0;
     $("kpi-licenses-active").textContent = s.licenses_active ?? 0;
@@ -275,7 +279,7 @@
 
   function kv(k, v) { return `<div class="kv"><span class="k">${escapeHtml(String(k))}</span><span class="v">${escapeHtml(String(v ?? "—"))}</span></div>`; }
   function yesNo(v) { return v ? "Sì" : "No"; }
-  function escapeHtml(s) { return String(s).replace(/[&<>\"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+  function escapeHtml(s) { return String(s).replace(/[&<>\"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
 
   function renderClients() {
     const q = ($("clients-search").value || "").trim().toLowerCase();
@@ -326,7 +330,7 @@
             ${inv.pdf_url ? `<button class="btn small ghost" data-bill="pdf" data-url="${escapeHtml(inv.pdf_url)}">PDF</button>` : ""}
             <button class="btn small ghost" data-bill="send" data-no="${inv.invoice_number}">Invia</button>
             <button class="btn small ghost" data-bill="paylink" data-no="${inv.invoice_number}">Link</button>
-            <button class="btn small ${String(inv.status).toUpperCase()==='PAID'?'ghost':'primary'}" data-bill="paid" data-no="${inv.invoice_number}">Segna Pagata</button>
+            <button class="btn small ${String(inv.status).toUpperCase() === 'PAID' ? 'ghost' : 'primary'}" data-bill="paid" data-no="${inv.invoice_number}">Segna Pagata</button>
           </div>
         </td>
       </tr>`).join("") : `<tr><td colspan="6" class="empty">Nessuna fattura.</td></tr>`;
