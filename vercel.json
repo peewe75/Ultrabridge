@@ -1,7 +1,16 @@
 {
     "cleanUrls": true,
     "trailingSlash": true,
+    "functions": {
+        "api/index.py": {
+            "runtime": "vercel-python@0.2.1"
+        }
+    },
     "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api/index.py"
+        },
         {
             "source": "/dashboard/client/(.*)",
             "destination": "/webapps/client_webapp/$1"
