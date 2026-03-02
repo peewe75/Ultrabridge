@@ -148,7 +148,6 @@ def verify_clerk_bearer_token(token: str) -> ClerkIdentity:
 
     decode_kwargs = {
         "algorithms": ["RS256"],
-        "leeway": 10,
         "options": {
             "verify_aud": bool((s.clerk_audience or "").strip()),
             "verify_iss": bool(issuer),
