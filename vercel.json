@@ -20,5 +20,10 @@
             "source": "/(.*)",
             "destination": "/webapps/landing_page/$1"
         }
-    ]
+    ],
+    "functions": {
+        "api/**/*.py": {
+            "includeFiles": "backend/**"
+        }
+    }
 }
