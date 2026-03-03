@@ -17,6 +17,76 @@ from app.models import AuditLog, User, Client
 router = APIRouter(prefix="/clerk", tags=["clerk"])
 
 
+def _full_name_from_payload(
+    user_data: dict, fallback_email: str | None, fallback_id: str
+) -> str:
+    first_name = (user_data.get("first_name") or "").strip()
+    last_name = (user_data.get("last_name") or "").strip()
+    full_name = f"{first_name} {last_name}".strip()
+    if full_name:
+        return full_name
+    if fallback_email:
+        return (
+            fallback_email.split("@", 1)[0]
+            .replace(".", " ")
+            .replace("_", " ")
+            .strip()
+            .title()
+            or "Cliente"
+        )
+    return f"User {fallback_id[-6:]}"
+
+
+def _ensure_client_profile_for_user(
+    db: Session, user: User, user_data: dict, email: str | None, clerk_user_id: str
+) -> str | None:
+    if user.role != "CLIENT":
+        return None
+
+    client = (
+        db.query(Client)
+        .filter(Client.user_id == user.id)
+        .with_for_update()
+        .one_or_none()
+    )
+    if client:
+        changed = False
+        if email and client.email != email:
+            client.email = email
+            changed = True
+        expected_name = _full_name_from_payload(user_data, email, clerk_user_id)
+        if expected_name and client.full_name != expected_name:
+            client.full_name = expected_name
+            changed = True
+        if changed:
+            db.add(client)
+        return client.id
+
+    by_email = (
+        db.query(Client).filter(Client.email == email).with_for_update().one_or_none()
+        if email
+        else None
+    )
+    if by_email and (not by_email.user_id or by_email.user_id == user.id):
+        by_email.user_id = user.id
+        by_email.full_name = by_email.full_name or _full_name_from_payload(
+            user_data, email, clerk_user_id
+        )
+        db.add(by_email)
+        return by_email.id
+
+    client = Client(
+        id=str(uuid.uuid4()),
+        user_id=user.id,
+        full_name=_full_name_from_payload(user_data, email, clerk_user_id),
+        email=user.email,
+        status="ACTIVE",
+    )
+    db.add(client)
+    db.flush()
+    return client.id
+
+
 def _extract_primary_email(user_data: dict) -> str | None:
     addresses = user_data.get("email_addresses") or []
     primary_id = user_data.get("primary_email_address_id")
@@ -45,7 +115,9 @@ def _svix_secret_to_bytes(secret: str) -> bytes:
     try:
         return base64.b64decode(normalized + padding)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="CLERK_WEBHOOK_SECRET non valido") from exc
+        raise HTTPException(
+            status_code=500, detail="CLERK_WEBHOOK_SECRET non valido"
+        ) from exc
 
 
 def _verify_svix_signature(
@@ -61,14 +133,20 @@ def _verify_svix_signature(
     try:
         ts = int(svix_timestamp)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail="svix-timestamp non valido") from exc
+        raise HTTPException(
+            status_code=400, detail="svix-timestamp non valido"
+        ) from exc
 
     now = int(time.time())
     if abs(now - ts) > 300:
-        raise HTTPException(status_code=400, detail="Webhook Clerk fuori finestra temporale")
+        raise HTTPException(
+            status_code=400, detail="Webhook Clerk fuori finestra temporale"
+        )
 
     signed_content = f"{svix_id}.{svix_timestamp}.{payload_text}".encode("utf-8")
-    digest = hmac.new(_svix_secret_to_bytes(secret), signed_content, hashlib.sha256).digest()
+    digest = hmac.new(
+        _svix_secret_to_bytes(secret), signed_content, hashlib.sha256
+    ).digest()
     expected = base64.b64encode(digest).decode("utf-8")
 
     provided = [item.strip() for item in svix_signature.split(" ") if item.strip()]
@@ -90,37 +168,82 @@ def _apply_user_upsert(db: Session, user_data: dict, event_type: str) -> dict:
         raise HTTPException(status_code=400, detail="Evento Clerk senza user id")
 
     email = _extract_primary_email(user_data)
-    suspended = bool(user_data.get("banned") or user_data.get("locked") or user_data.get("deleted"))
+    suspended = bool(
+        user_data.get("banned") or user_data.get("locked") or user_data.get("deleted")
+    )
     status = "SUSPENDED" if suspended else "ACTIVE"
 
     # Match primario (lock)
-    existing = db.query(User).filter(User.clerk_user_id == clerk_user_id).with_for_update().one_or_none()
+    existing = (
+        db.query(User)
+        .filter(User.clerk_user_id == clerk_user_id)
+        .with_for_update()
+        .one_or_none()
+    )
     if existing:
-        details: dict[str, object] = {"mode": "matched_clerk_user_id", "user_id": existing.id}
+        details: dict[str, object] = {
+            "mode": "matched_clerk_user_id",
+            "user_id": existing.id,
+        }
         if email and email.lower() != existing.email.lower():
-            email_owner = db.query(User).filter(User.email == email.lower()).with_for_update().one_or_none()
+            email_owner = (
+                db.query(User)
+                .filter(User.email == email.lower())
+                .with_for_update()
+                .one_or_none()
+            )
             if not email_owner or email_owner.id == existing.id:
                 existing.email = email.lower()
             else:
-                details["email_conflict"] = {"email": email, "owner_user_id": email_owner.id}
-                print(f"[WEBHOOK ERROR] Ambiguous merge: User {existing.id} tried to claim email {email} owned by {email_owner.id}")
+                details["email_conflict"] = {
+                    "email": email,
+                    "owner_user_id": email_owner.id,
+                }
+                print(
+                    f"[WEBHOOK ERROR] Ambiguous merge: User {existing.id} tried to claim email {email} owned by {email_owner.id}"
+                )
         existing.status = status
         db.add(existing)
+        details["client_id"] = _ensure_client_profile_for_user(
+            db, existing, user_data, email, clerk_user_id
+        )
         return details
 
     # Match secondario
-    linked_by_email = db.query(User).filter(User.email == email.lower()).with_for_update().one_or_none() if email else None
+    linked_by_email = (
+        db.query(User)
+        .filter(User.email == email.lower())
+        .with_for_update()
+        .one_or_none()
+        if email
+        else None
+    )
     if linked_by_email:
-        if linked_by_email.clerk_user_id and linked_by_email.clerk_user_id != clerk_user_id:
+        if (
+            linked_by_email.clerk_user_id
+            and linked_by_email.clerk_user_id != clerk_user_id
+        ):
             # Conflitto fatale!
             db.rollback()
-            print(f"[WEBHOOK ERROR] Account takeover attempt? Email {email} is bound to {linked_by_email.clerk_user_id}, not {clerk_user_id}")
-            raise HTTPException(status_code=409, detail="Email già associata ad un altro profilo Clerk")
+            print(
+                f"[WEBHOOK ERROR] Account takeover attempt? Email {email} is bound to {linked_by_email.clerk_user_id}, not {clerk_user_id}"
+            )
+            raise HTTPException(
+                status_code=409, detail="Email già associata ad un altro profilo Clerk"
+            )
 
         linked_by_email.clerk_user_id = clerk_user_id
         linked_by_email.status = status
         db.add(linked_by_email)
-        return {"mode": "linked_existing_email", "user_id": linked_by_email.id, "email": email}
+        client_id = _ensure_client_profile_for_user(
+            db, linked_by_email, user_data, email, clerk_user_id
+        )
+        return {
+            "mode": "linked_existing_email",
+            "user_id": linked_by_email.id,
+            "email": email,
+            "client_id": client_id,
+        }
 
     # Creazione (Fallback 100% nuovo)
     user = User(
@@ -133,36 +256,14 @@ def _apply_user_upsert(db: Session, user_data: dict, event_type: str) -> dict:
     )
     db.add(user)
     db.flush()
-    
-    # Crea Client se creato in questo evento
-    if event_type == "user.created":
-        first_name = user_data.get("first_name") or ""
-        last_name = user_data.get("last_name") or ""
-        full_name = f"{first_name} {last_name}".strip()
-        if not full_name:
-            full_name = email.split('@')[0] if email else f"User {clerk_user_id[-6:]}"
-            
-        client = Client(
-            id=str(uuid.uuid4()),
-            user_id=user.id,
-            full_name=full_name,
-            email=user.email,
-            status="ACTIVE"
-        )
-        db.add(client)
-        db.flush()
-        return {
-            "mode": "created_sql_user_and_client",
-            "user_id": user.id,
-            "client_id": client.id,
-            "role": user.role,
-            "status": user.status,
-            "event_type": event_type,
-        }
+    client_id = _ensure_client_profile_for_user(
+        db, user, user_data, email, clerk_user_id
+    )
 
     return {
         "mode": "created_sql_user",
         "user_id": user.id,
+        "client_id": client_id,
         "role": user.role,
         "status": user.status,
         "event_type": event_type,
@@ -191,16 +292,26 @@ async def clerk_webhook(
 ):
     settings = get_settings()
     if not settings.clerk_webhook_secret:
-        raise HTTPException(status_code=503, detail="CLERK_WEBHOOK_SECRET non configurato")
+        raise HTTPException(
+            status_code=503, detail="CLERK_WEBHOOK_SECRET non configurato"
+        )
 
     body = await request.body()
     payload_text = body.decode("utf-8")
-    _verify_svix_signature(payload_text, settings.clerk_webhook_secret, svix_id, svix_timestamp, svix_signature)
+    _verify_svix_signature(
+        payload_text,
+        settings.clerk_webhook_secret,
+        svix_id,
+        svix_timestamp,
+        svix_signature,
+    )
 
     try:
         event = json.loads(payload_text)
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=400, detail="Payload webhook Clerk non valido") from exc
+        raise HTTPException(
+            status_code=400, detail="Payload webhook Clerk non valido"
+        ) from exc
 
     event_id = str(event.get("id") or "")
     event_type = str(event.get("type") or "")
@@ -226,15 +337,22 @@ async def clerk_webhook(
     elif event_type == "user.deleted":
         result = _apply_user_deleted(db, event_data)
 
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLERK",
-        actor_id=(event_data.get("id") if isinstance(event_data, dict) else None),
-        action="CLERK_WEBHOOK_EVENT",
-        entity_type="CLERK_EVENT",
-        entity_id=event_id,
-        details={"event_type": event_type, "result": result},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLERK",
+            actor_id=(event_data.get("id") if isinstance(event_data, dict) else None),
+            action="CLERK_WEBHOOK_EVENT",
+            entity_type="CLERK_EVENT",
+            entity_id=event_id,
+            details={"event_type": event_type, "result": result},
+        )
+    )
     db.commit()
 
-    return {"ok": True, "event_id": event_id, "event_type": event_type, "result": result}
+    return {
+        "ok": True,
+        "event_id": event_id,
+        "event_type": event_type,
+        "result": result,
+    }

@@ -366,7 +366,7 @@ function _wizardGoTo(idx) {
 // ─────────────────────────────────────────────────────────────
 
 function _getToken() {
-    return window.SB_TOKEN || localStorage.getItem("sb_client_token") || "";
+    return window.SB_TOKEN || localStorage.getItem("softibridge_client_token") || localStorage.getItem("sb_client_token") || "";
 }
 
 function _feedbackEl(id, msg, isError = false) {
@@ -439,7 +439,6 @@ async function wiz_saveSignalRoom() {
 
 async function wiz_saveMT4Config() {
     const account = (document.getElementById("wiz-mt4-account")?.value || "").trim();
-    const password = (document.getElementById("wiz-mt4-password")?.value || "").trim();
     const server = (document.getElementById("wiz-mt4-server")?.value || "").trim();
     const platform = document.getElementById("wiz-mt4-platform")?.value || "MT4";
 
@@ -449,21 +448,19 @@ async function wiz_saveMT4Config() {
     }
 
     try {
-        // Salva nella sezione ea_config del profilo cliente
+        const payload = {
+            mt4_account: platform === "MT4" ? account : null,
+            mt5_account: platform === "MT5" ? account : null,
+            default_lots: 0.1,
+            max_daily_dd_pct: 5.0,
+        };
         const res = await fetch(`${window.SB_API_BASE || ""}/api/client/ea/config`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${_getToken()}` },
-            body: JSON.stringify({
-                ea_config: {
-                    mt4_account: account,
-                    mt4_password: password ? `[encrypted:${btoa(password)}]` : undefined,
-                    broker_server: server,
-                    platform: platform,
-                }
-            }),
+            body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (res.ok && (data.ok || data.success || data.id)) {
+        if (res.ok && (data.source || data.mt4_account !== undefined || data.mt5_account !== undefined)) {
             _feedbackEl("wiz-mt4-feedback", `✅ Configurazione MT4 salvata! Account: <strong>${account}</strong> su <strong>${server}</strong>`);
             if (_onboardingStatus) _onboardingStatus.steps.mt4_configured = true;
             setTimeout(() => wizardNext(), 1500);
@@ -477,9 +474,10 @@ async function wiz_saveMT4Config() {
 
 async function wiz_generateLicense() {
     try {
-        const res = await fetch(`${window.SB_API_BASE || ""}/api/client/license/generate-activation-code`, {
+        const res = await fetch(`${window.SB_API_BASE || ""}/api/client/license/activation-code`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${_getToken()}` },
+            body: JSON.stringify({ ttl_minutes: 20 }),
         });
         const data = await res.json();
         if (res.ok && data.activation_code) {

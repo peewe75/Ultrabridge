@@ -31,6 +31,7 @@ from app.models import (
     Plan,
     SuperAdminFeeRule,
     SuperAdminPayout,
+    User,
     VpsNode,
 )
 from app.schemas import (
@@ -52,7 +53,11 @@ from app.services.invoicing import (
 )
 from app.services.licenses import admin_summary, create_license
 from app.services.licenses import apply_license_replacement, set_license_grace_window
-from app.services.download_access import get_client_download_policy, normalize_download_policy, resolve_allowed_download_codes
+from app.services.download_access import (
+    get_client_download_policy,
+    normalize_download_policy,
+    resolve_allowed_download_codes,
+)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -96,6 +101,12 @@ class AdminWLCreateRequest(BaseModel):
     admin_plan_code: str
     fee_pct_l1: int = Field(default=70, ge=0, le=100)
     notes: str | None = None
+
+
+class UserRoleAssignRequest(BaseModel):
+    email: str | None = None
+    user_id: str | None = None
+    role: str
 
 
 class AdminWLUpdateRequest(BaseModel):
@@ -191,7 +202,11 @@ class VpsProvisionRequest(BaseModel):
 
 
 def _invoice_with_client(db: Session, invoice: Invoice) -> dict:
-    client = db.query(Client).filter(Client.id == invoice.client_id).one_or_none() if invoice.client_id else None
+    client = (
+        db.query(Client).filter(Client.id == invoice.client_id).one_or_none()
+        if invoice.client_id
+        else None
+    )
     return invoice_to_dict(invoice, client=client)
 
 
@@ -201,15 +216,23 @@ def _snapshot_system_state() -> dict:
         "billing_enabled": bool(SYSTEM_CONTROL_STATE.get("billing_enabled", True)),
         "signals_enabled": bool(SYSTEM_CONTROL_STATE.get("signals_enabled", True)),
         "ea_bridge_enabled": bool(SYSTEM_CONTROL_STATE.get("ea_bridge_enabled", True)),
-        "client_access_enabled": bool(SYSTEM_CONTROL_STATE.get("client_access_enabled", True)),
+        "client_access_enabled": bool(
+            SYSTEM_CONTROL_STATE.get("client_access_enabled", True)
+        ),
         "updated_at": SYSTEM_CONTROL_STATE.get("updated_at"),
         "last_action": SYSTEM_CONTROL_STATE.get("last_action"),
         "last_reason": SYSTEM_CONTROL_STATE.get("last_reason"),
     }
 
 
-def _get_or_create_fee_rules(db: Session, user_id: str | None = None) -> SuperAdminFeeRule:
-    row = db.query(SuperAdminFeeRule).filter(SuperAdminFeeRule.id == "default").one_or_none()
+def _get_or_create_fee_rules(
+    db: Session, user_id: str | None = None
+) -> SuperAdminFeeRule:
+    row = (
+        db.query(SuperAdminFeeRule)
+        .filter(SuperAdminFeeRule.id == "default")
+        .one_or_none()
+    )
     if row:
         return row
     row = SuperAdminFeeRule(
@@ -226,9 +249,22 @@ def _get_or_create_fee_rules(db: Session, user_id: str | None = None) -> SuperAd
 
 
 def _admin_wl_to_dict(db: Session, row: AdminWL) -> dict:
-    sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
-    limits = db.query(AdminOperationalLimits).filter(AdminOperationalLimits.admin_wl_id == row.id).one_or_none()
-    branding = db.query(AdminBranding).filter(AdminBranding.admin_wl_id == row.id).one_or_none()
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.admin_wl_id == row.id)
+        .order_by(AdminSubscription.created_at.desc())
+        .first()
+    )
+    limits = (
+        db.query(AdminOperationalLimits)
+        .filter(AdminOperationalLimits.admin_wl_id == row.id)
+        .one_or_none()
+    )
+    branding = (
+        db.query(AdminBranding)
+        .filter(AdminBranding.admin_wl_id == row.id)
+        .one_or_none()
+    )
     return {
         "id": row.id,
         "email": row.email,
@@ -242,11 +278,17 @@ def _admin_wl_to_dict(db: Session, row: AdminWL) -> dict:
             "id": sub.id,
             "status": sub.status,
             "billing_cycle": sub.billing_cycle,
-            "current_period_start": sub.current_period_start.isoformat() if sub.current_period_start else None,
-            "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
+            "current_period_start": sub.current_period_start.isoformat()
+            if sub.current_period_start
+            else None,
+            "current_period_end": sub.current_period_end.isoformat()
+            if sub.current_period_end
+            else None,
             "grace_until": sub.grace_until.isoformat() if sub.grace_until else None,
             "auto_renew": sub.auto_renew,
-        } if sub else None,
+        }
+        if sub
+        else None,
         "limits": (limits.limits_json if limits else {}),
         "limits_source": limits.source if limits else None,
         "branding": {
@@ -258,38 +300,63 @@ def _admin_wl_to_dict(db: Session, row: AdminWL) -> dict:
             "sender_name": branding.sender_name,
             "sender_email": branding.sender_email,
             "config_json": branding.config_json or {},
-        } if branding else None,
+        }
+        if branding
+        else None,
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
     }
 
 
-def _create_admin_status_history(db: Session, admin_wl_id: str, from_status: str | None, to_status: str, reason: str | None, actor_user_id: str | None):
-    db.add(AdminStatusHistory(
-        id=str(uuid.uuid4()),
-        admin_wl_id=admin_wl_id,
-        from_status=from_status,
-        to_status=to_status,
-        reason=reason,
-        actor_user_id=actor_user_id,
-    ))
+def _create_admin_status_history(
+    db: Session,
+    admin_wl_id: str,
+    from_status: str | None,
+    to_status: str,
+    reason: str | None,
+    actor_user_id: str | None,
+):
+    db.add(
+        AdminStatusHistory(
+            id=str(uuid.uuid4()),
+            admin_wl_id=admin_wl_id,
+            from_status=from_status,
+            to_status=to_status,
+            reason=reason,
+            actor_user_id=actor_user_id,
+        )
+    )
 
 
-def _resolve_admin_wl_for_user(db: Session, user, *, required: bool = False) -> AdminWL | None:
+def _resolve_admin_wl_for_user(
+    db: Session, user, *, required: bool = False
+) -> AdminWL | None:
     if getattr(user, "role", None) != "ADMIN_WL":
         return None
     row = None
     if getattr(user, "id", None):
-        row = db.query(AdminWL).filter(AdminWL.user_id == user.id).order_by(AdminWL.created_at.desc()).first()
+        row = (
+            db.query(AdminWL)
+            .filter(AdminWL.user_id == user.id)
+            .order_by(AdminWL.created_at.desc())
+            .first()
+        )
     if not row and getattr(user, "email", None):
-        row = db.query(AdminWL).filter(AdminWL.email == user.email).order_by(AdminWL.created_at.desc()).first()
+        row = (
+            db.query(AdminWL)
+            .filter(AdminWL.email == user.email)
+            .order_by(AdminWL.created_at.desc())
+            .first()
+        )
         # Auto-link the first matching WL profile to the authenticated ADMIN_WL user.
         if row and (not row.user_id or row.user_id == getattr(user, "id", None)):
             row.user_id = getattr(user, "id", None)
             db.commit()
             db.refresh(row)
     if required and not row:
-        raise HTTPException(status_code=403, detail="Profilo Admin WL non collegato al tuo utente")
+        raise HTTPException(
+            status_code=403, detail="Profilo Admin WL non collegato al tuo utente"
+        )
     return row
 
 
@@ -297,15 +364,23 @@ def _enforce_client_scope(client: Client | None, admin_scope: AdminWL | None) ->
     if not client:
         raise HTTPException(status_code=404, detail="Cliente non trovato")
     if admin_scope and client.admin_wl_id != admin_scope.id:
-        raise HTTPException(status_code=403, detail="Cliente fuori dal tuo perimetro Admin")
+        raise HTTPException(
+            status_code=403, detail="Cliente fuori dal tuo perimetro Admin"
+        )
 
 
-def _max_grace_hours_for_actor(db: Session, user, admin_scope: AdminWL | None) -> int | None:
+def _max_grace_hours_for_actor(
+    db: Session, user, admin_scope: AdminWL | None
+) -> int | None:
     if getattr(user, "role", None) == "SUPER_ADMIN":
         return None
     if not admin_scope:
         return 48
-    limits = db.query(AdminOperationalLimits).filter(AdminOperationalLimits.admin_wl_id == admin_scope.id).one_or_none()
+    limits = (
+        db.query(AdminOperationalLimits)
+        .filter(AdminOperationalLimits.admin_wl_id == admin_scope.id)
+        .one_or_none()
+    )
     limits_json = (limits.limits_json or {}) if limits else {}
     raw = limits_json.get("license_replacement_max_grace_hours", 48)
     try:
@@ -315,25 +390,36 @@ def _max_grace_hours_for_actor(db: Session, user, admin_scope: AdminWL | None) -
     return max(0, value)
 
 
-def _get_scoped_license(db: Session, license_id: str, admin_scope: AdminWL | None) -> License:
+def _get_scoped_license(
+    db: Session, license_id: str, admin_scope: AdminWL | None
+) -> License:
     lic = db.query(License).filter(License.id == license_id).one_or_none()
     if not lic:
         raise HTTPException(status_code=404, detail="Licenza non trovata")
     if admin_scope:
         if not lic.client_id:
-            raise HTTPException(status_code=403, detail="Licenza non associata a un tuo cliente")
+            raise HTTPException(
+                status_code=403, detail="Licenza non associata a un tuo cliente"
+            )
         client = db.query(Client).filter(Client.id == lic.client_id).one_or_none()
         _enforce_client_scope(client, admin_scope)
     return lic
 
 
-def _get_scoped_invoice(db: Session, invoice_number: str, admin_scope: AdminWL | None) -> Invoice:
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number).one_or_none()
+def _get_scoped_invoice(
+    db: Session, invoice_number: str, admin_scope: AdminWL | None
+) -> Invoice:
+    invoice = (
+        db.query(Invoice).filter(Invoice.invoice_number == invoice_number).one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     if admin_scope:
         if not invoice.client_id:
-            raise HTTPException(status_code=403, detail="Fattura non associata a un cliente del tuo perimetro")
+            raise HTTPException(
+                status_code=403,
+                detail="Fattura non associata a un cliente del tuo perimetro",
+            )
         client = db.query(Client).filter(Client.id == invoice.client_id).one_or_none()
         _enforce_client_scope(client, admin_scope)
     return invoice
@@ -369,7 +455,9 @@ def _admin_billing_doc_to_dict(db: Session, doc: AdminBillingDocument) -> dict:
             "contact_name": admin_row.contact_name,
             "status": admin_row.status,
             "admin_plan_code": admin_row.admin_plan_code,
-        } if admin_row else None,
+        }
+        if admin_row
+        else None,
         "payable": doc.status not in {"PAID", "CANCELLED"},
     }
 
@@ -397,8 +485,14 @@ def dashboard_summary(
     licenses_active = sum(1 for l in licenses if l.status == "ACTIVE")
 
     plan_map = {p.code: p for p in db.query(Plan).filter(Plan.active.is_(True)).all()}
-    active_licenses = [l for l in licenses if l.status in {"ACTIVE", "PAST_DUE", "GRACE_REPLACEMENT"}]
-    mrr_cents = sum((plan_map.get(l.plan_code).monthly_price_cents or 0) for l in active_licenses if l.plan_code in plan_map)
+    active_licenses = [
+        l for l in licenses if l.status in {"ACTIVE", "PAST_DUE", "GRACE_REPLACEMENT"}
+    ]
+    mrr_cents = sum(
+        (plan_map.get(l.plan_code).monthly_price_cents or 0)
+        for l in active_licenses
+        if l.plan_code in plan_map
+    )
 
     payments_q = db.query(Payment)
     if client_ids:
@@ -406,7 +500,9 @@ def dashboard_summary(
         paid_rows = payments_q.all()
     else:
         paid_rows = []
-    invoices_total_cents = sum(p.amount_cents for p in paid_rows if p.status in {"PAID", "SUCCEEDED"})
+    invoices_total_cents = sum(
+        p.amount_cents for p in paid_rows if p.status in {"PAID", "SUCCEEDED"}
+    )
 
     return AdminSummary(
         clients_total=clients_total,
@@ -442,78 +538,92 @@ def admin_system_control(
         SYSTEM_CONTROL_STATE["last_reason"] = req.reason or "Health analysis requested"
         SYSTEM_CONTROL_STATE["updated_at"] = now_iso
     elif action == "MAINTENANCE_ON":
-        SYSTEM_CONTROL_STATE.update({
-            "mode": "MAINTENANCE",
-            "billing_enabled": False,
-            "signals_enabled": True,
-            "ea_bridge_enabled": True,
-            "client_access_enabled": True,
-            "last_action": action,
-            "last_reason": req.reason or "Maintenance mode enabled",
-            "updated_at": now_iso,
-        })
+        SYSTEM_CONTROL_STATE.update(
+            {
+                "mode": "MAINTENANCE",
+                "billing_enabled": False,
+                "signals_enabled": True,
+                "ea_bridge_enabled": True,
+                "client_access_enabled": True,
+                "last_action": action,
+                "last_reason": req.reason or "Maintenance mode enabled",
+                "updated_at": now_iso,
+            }
+        )
     elif action == "MAINTENANCE_OFF":
-        SYSTEM_CONTROL_STATE.update({
-            "mode": "NORMAL",
-            "billing_enabled": True,
-            "signals_enabled": True,
-            "ea_bridge_enabled": True,
-            "client_access_enabled": True,
-            "last_action": action,
-            "last_reason": req.reason or "Maintenance mode disabled",
-            "updated_at": now_iso,
-        })
+        SYSTEM_CONTROL_STATE.update(
+            {
+                "mode": "NORMAL",
+                "billing_enabled": True,
+                "signals_enabled": True,
+                "ea_bridge_enabled": True,
+                "client_access_enabled": True,
+                "last_action": action,
+                "last_reason": req.reason or "Maintenance mode disabled",
+                "updated_at": now_iso,
+            }
+        )
     elif action == "FREEZE_OPERATIONS":
-        SYSTEM_CONTROL_STATE.update({
-            "mode": "FROZEN",
-            "billing_enabled": False,
-            "signals_enabled": False,
-            "ea_bridge_enabled": False,
-            "client_access_enabled": True,
-            "last_action": action,
-            "last_reason": req.reason or "Operations frozen",
-            "updated_at": now_iso,
-        })
+        SYSTEM_CONTROL_STATE.update(
+            {
+                "mode": "FROZEN",
+                "billing_enabled": False,
+                "signals_enabled": False,
+                "ea_bridge_enabled": False,
+                "client_access_enabled": True,
+                "last_action": action,
+                "last_reason": req.reason or "Operations frozen",
+                "updated_at": now_iso,
+            }
+        )
     elif action == "RESUME_ALL":
-        SYSTEM_CONTROL_STATE.update({
-            "mode": "NORMAL",
-            "billing_enabled": True,
-            "signals_enabled": True,
-            "ea_bridge_enabled": True,
-            "client_access_enabled": True,
-            "last_action": action,
-            "last_reason": req.reason or "All services resumed",
-            "updated_at": now_iso,
-        })
+        SYSTEM_CONTROL_STATE.update(
+            {
+                "mode": "NORMAL",
+                "billing_enabled": True,
+                "signals_enabled": True,
+                "ea_bridge_enabled": True,
+                "client_access_enabled": True,
+                "last_action": action,
+                "last_reason": req.reason or "All services resumed",
+                "updated_at": now_iso,
+            }
+        )
     elif action == "EMERGENCY_SHUTDOWN":
-        SYSTEM_CONTROL_STATE.update({
-            "mode": "SHUTDOWN",
-            "billing_enabled": False,
-            "signals_enabled": False,
-            "ea_bridge_enabled": False,
-            "client_access_enabled": False,
-            "last_action": action,
-            "last_reason": req.reason or "Emergency shutdown",
-            "updated_at": now_iso,
-        })
+        SYSTEM_CONTROL_STATE.update(
+            {
+                "mode": "SHUTDOWN",
+                "billing_enabled": False,
+                "signals_enabled": False,
+                "ea_bridge_enabled": False,
+                "client_access_enabled": False,
+                "last_action": action,
+                "last_reason": req.reason or "Emergency shutdown",
+                "updated_at": now_iso,
+            }
+        )
     else:
         raise HTTPException(status_code=400, detail=f"Azione non supportata: {action}")
 
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        action=f"SYSTEM_CONTROL_{action}",
-        entity_type="SYSTEM",
-        entity_id="softibridge-core",
-        level="WARNING" if action in {"FREEZE_OPERATIONS", "EMERGENCY_SHUTDOWN"} else "INFO",
-        details={
-            "action": action,
-            "mode_before": mode_before,
-            "mode_after": SYSTEM_CONTROL_STATE.get("mode"),
-            "reason": req.reason,
-            "snapshot": _snapshot_system_state(),
-        },
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            action=f"SYSTEM_CONTROL_{action}",
+            entity_type="SYSTEM",
+            entity_id="softibridge-core",
+            level="WARNING"
+            if action in {"FREEZE_OPERATIONS", "EMERGENCY_SHUTDOWN"}
+            else "INFO",
+            details={
+                "action": action,
+                "mode_before": mode_before,
+                "mode_after": SYSTEM_CONTROL_STATE.get("mode"),
+                "reason": req.reason,
+                "snapshot": _snapshot_system_state(),
+            },
+        )
+    )
     db.commit()
     return {"ok": True, "system": _snapshot_system_state()}
 
@@ -524,7 +634,11 @@ def list_clients(
     db: Session = Depends(get_db),
     admin_wl_id: str | None = None,
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     q = db.query(Client)
     if admin_scope:
         q = q.filter(Client.admin_wl_id == admin_scope.id)
@@ -539,7 +653,11 @@ def list_clients_grouped_by_admin(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     q = db.query(Client)
     if admin_scope:
         q = q.filter(Client.admin_wl_id == admin_scope.id)
@@ -556,11 +674,15 @@ def list_clients_grouped_by_admin(
             a = admins.get(c.admin_wl_id) if c.admin_wl_id else None
             grouped[key] = {
                 "admin_wl_id": c.admin_wl_id,
-                "admin_brand_name": a.brand_name if a else ("Senza Admin" if not c.admin_wl_id else "Admin sconosciuto"),
+                "admin_brand_name": a.brand_name
+                if a
+                else ("Senza Admin" if not c.admin_wl_id else "Admin sconosciuto"),
                 "admin_email": a.email if a else None,
                 "clients": [],
             }
-        grouped[key]["clients"].append(ClientOut.model_validate(c, from_attributes=True).model_dump())
+        grouped[key]["clients"].append(
+            ClientOut.model_validate(c, from_attributes=True).model_dump()
+        )
     return {"groups": list(grouped.values())}
 
 
@@ -570,9 +692,17 @@ def create_client_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     target_admin_wl_id = admin_scope.id if admin_scope else req.admin_wl_id
-    if not admin_scope and req.admin_wl_id and not db.query(AdminWL).filter(AdminWL.id == req.admin_wl_id).one_or_none():
+    if (
+        not admin_scope
+        and req.admin_wl_id
+        and not db.query(AdminWL).filter(AdminWL.id == req.admin_wl_id).one_or_none()
+    ):
         raise HTTPException(status_code=404, detail="Admin WL assegnato non trovato")
     row = Client(
         id=str(uuid.uuid4()),
@@ -586,14 +716,16 @@ def create_client_endpoint(
         status="ACTIVE",
     )
     db.add(row)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        action="CLIENT_CREATED",
-        entity_type="CLIENT",
-        entity_id=row.id,
-        details={"email": req.email, "country_code": row.country_code},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            action="CLIENT_CREATED",
+            entity_type="CLIENT",
+            entity_id=row.id,
+            details={"email": req.email, "country_code": row.country_code},
+        )
+    )
     db.commit()
     db.refresh(row)
     return ClientOut.model_validate(row, from_attributes=True)
@@ -605,18 +737,29 @@ def get_client_download_policy_endpoint(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     client = db.query(Client).filter(Client.id == client_id).one_or_none()
     _enforce_client_scope(client, admin_scope)
     assert client is not None
     policy = get_client_download_policy(client)
-    active_downloads = db.query(Download).filter(Download.active.is_(True)).order_by(Download.code.asc()).all()
+    active_downloads = (
+        db.query(Download)
+        .filter(Download.active.is_(True))
+        .order_by(Download.code.asc())
+        .all()
+    )
     allowed_codes = resolve_allowed_download_codes(db, client)
     return {
         "client_id": client.id,
         "policy": policy,
         "allowed_codes": sorted(allowed_codes),
-        "available_codes": [str(d.code or "").upper() for d in active_downloads if d.code],
+        "available_codes": [
+            str(d.code or "").upper() for d in active_downloads if d.code
+        ],
     }
 
 
@@ -627,7 +770,11 @@ def update_client_download_policy_endpoint(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     client = db.query(Client).filter(Client.id == client_id).one_or_none()
     _enforce_client_scope(client, admin_scope)
     assert client is not None
@@ -638,25 +785,34 @@ def update_client_download_policy_endpoint(
     profile["download_policy"] = policy
     client.fiscal_profile = profile
     db.add(client)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type=getattr(user, "role", None) or "ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="CLIENT_DOWNLOAD_POLICY_UPDATED",
-        entity_type="CLIENT",
-        entity_id=client.id,
-        details={"policy": policy},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type=getattr(user, "role", None) or "ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="CLIENT_DOWNLOAD_POLICY_UPDATED",
+            entity_type="CLIENT",
+            entity_id=client.id,
+            details={"policy": policy},
+        )
+    )
     db.commit()
 
     allowed_codes = resolve_allowed_download_codes(db, client)
-    active_downloads = db.query(Download).filter(Download.active.is_(True)).order_by(Download.code.asc()).all()
+    active_downloads = (
+        db.query(Download)
+        .filter(Download.active.is_(True))
+        .order_by(Download.code.asc())
+        .all()
+    )
     return {
         "ok": True,
         "client_id": client.id,
         "policy": policy,
         "allowed_codes": sorted(allowed_codes),
-        "available_codes": [str(d.code or "").upper() for d in active_downloads if d.code],
+        "available_codes": [
+            str(d.code or "").upper() for d in active_downloads if d.code
+        ],
     }
 
 
@@ -668,7 +824,11 @@ def list_client_payments_archive(
     status: str | None = None,
     limit: int = 200,
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     effective_admin_wl_id = admin_scope.id if admin_scope else admin_wl_id
     q = db.query(Payment).order_by(Payment.created_at.desc())
     if status:
@@ -684,12 +844,20 @@ def list_client_payments_archive(
     invoice_map: dict[str, Invoice] = {}
     if rows:
         pids = [r.id for r in rows]
-        invs = db.query(Invoice).filter(Invoice.payment_id.in_(pids)).all() if pids else []
+        invs = (
+            db.query(Invoice).filter(Invoice.payment_id.in_(pids)).all() if pids else []
+        )
         invoice_map = {i.payment_id: i for i in invs if i.payment_id}
     manual_map: dict[str, ManualPaymentSubmission] = {}
     if rows:
         pids = [r.id for r in rows]
-        subs = db.query(ManualPaymentSubmission).filter(ManualPaymentSubmission.payment_id.in_(pids)).all() if pids else []
+        subs = (
+            db.query(ManualPaymentSubmission)
+            .filter(ManualPaymentSubmission.payment_id.in_(pids))
+            .all()
+            if pids
+            else []
+        )
         manual_map = {s.payment_id: s for s in subs if s.payment_id}
 
     result = []
@@ -699,34 +867,49 @@ def list_client_payments_archive(
             continue
         inv = invoice_map.get(p.id)
         manual = manual_map.get(p.id)
-        result.append({
-            "id": p.id,
-            "client": {
-                "id": c.id,
-                "full_name": c.full_name,
-                "email": c.email,
-                "admin_wl_id": c.admin_wl_id,
-            } if c else None,
-            "invoice": {
-                "id": inv.id,
-                "invoice_number": inv.invoice_number,
-                "status": inv.status,
-                "document_type": (inv.fiscal_snapshot or {}).get("document_type") if inv else None,
-            } if inv else None,
-            "method": (p.metadata_json or {}).get("payment_method") or ("STRIPE" if p.stripe_payment_intent_id or p.stripe_checkout_session_id else "MANUAL"),
-            "status": p.status,
-            "amount_cents": p.amount_cents,
-            "currency": p.currency,
-            "paid_at": p.paid_at.isoformat() if p.paid_at else None,
-            "created_at": p.created_at.isoformat() if p.created_at else None,
-            "manual_submission": {
-                "id": manual.id,
-                "status": manual.status,
-                "reference_code": manual.reference_code,
-                "proof_url": manual.proof_url,
-                "review_notes": manual.review_notes,
-            } if manual else None,
-        })
+        result.append(
+            {
+                "id": p.id,
+                "client": {
+                    "id": c.id,
+                    "full_name": c.full_name,
+                    "email": c.email,
+                    "admin_wl_id": c.admin_wl_id,
+                }
+                if c
+                else None,
+                "invoice": {
+                    "id": inv.id,
+                    "invoice_number": inv.invoice_number,
+                    "status": inv.status,
+                    "document_type": (inv.fiscal_snapshot or {}).get("document_type")
+                    if inv
+                    else None,
+                }
+                if inv
+                else None,
+                "method": (p.metadata_json or {}).get("payment_method")
+                or (
+                    "STRIPE"
+                    if p.stripe_payment_intent_id or p.stripe_checkout_session_id
+                    else "MANUAL"
+                ),
+                "status": p.status,
+                "amount_cents": p.amount_cents,
+                "currency": p.currency,
+                "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "manual_submission": {
+                    "id": manual.id,
+                    "status": manual.status,
+                    "reference_code": manual.reference_code,
+                    "proof_url": manual.proof_url,
+                    "review_notes": manual.review_notes,
+                }
+                if manual
+                else None,
+            }
+        )
     return result
 
 
@@ -766,21 +949,31 @@ def admin_wl_fee_report(
             continue
         admin_id = client.admin_wl_id or "UNASSIGNED"
         admin_row = admins.get(client.admin_wl_id) if client.admin_wl_id else None
-        method = (p.metadata_json or {}).get("payment_method") or ("STRIPE" if p.stripe_payment_intent_id or p.stripe_checkout_session_id else "MANUAL")
+        method = (p.metadata_json or {}).get("payment_method") or (
+            "STRIPE"
+            if p.stripe_payment_intent_id or p.stripe_checkout_session_id
+            else "MANUAL"
+        )
         amount_cents = int(p.amount_cents or 0)
         if amount_cents <= 0:
             continue
 
         entry = grouped.get(admin_id)
         if not entry:
-            fee_pct_l1 = int(admin_row.fee_pct_l1) if admin_row and admin_row.fee_pct_l1 is not None else int(fee_rules.l1_pct_default or 70)
+            fee_pct_l1 = (
+                int(admin_row.fee_pct_l1)
+                if admin_row and admin_row.fee_pct_l1 is not None
+                else int(fee_rules.l1_pct_default or 70)
+            )
             l2_pct = int(fee_rules.l2_pct or 10)
             l0_pct = int(fee_rules.l0_pct or 20)
             if fee_pct_l1 + l2_pct + l0_pct != 100:
                 l0_pct = max(0, 100 - fee_pct_l1 - l2_pct)
             entry = {
                 "admin_wl_id": None if admin_id == "UNASSIGNED" else admin_id,
-                "admin_brand_name": admin_row.brand_name if admin_row else "Senza Admin",
+                "admin_brand_name": admin_row.brand_name
+                if admin_row
+                else "Senza Admin",
                 "admin_email": admin_row.email if admin_row else None,
                 "admin_status": admin_row.status if admin_row else None,
                 "admin_plan_code": admin_row.admin_plan_code if admin_row else None,
@@ -864,15 +1057,17 @@ def admin_wl_fee_rules_save(
     row.l2_pct = int(req.l2)
     row.updated_by_user_id = getattr(user, "id", None)
     db.add(row)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="FEE_RULES_UPDATED",
-        entity_type="FEE_RULES",
-        entity_id=row.id,
-        details={"l0": req.l0, "l1": req.l1, "l2": req.l2},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="FEE_RULES_UPDATED",
+            entity_type="FEE_RULES",
+            entity_id=row.id,
+            details={"l0": req.l0, "l1": req.l1, "l2": req.l2},
+        )
+    )
     db.commit()
     return {
         "ok": True,
@@ -896,20 +1091,23 @@ def admin_wl_payouts_list(
     if status and status.upper() != "ALL":
         q = q.filter(SuperAdminPayout.status == status.upper())
     rows = q.limit(min(limit, 2000)).all()
-    return [{
-        "id": r.id,
-        "period": r.period,
-        "beneficiary": r.beneficiary_name,
-        "beneficiary_ref": r.beneficiary_ref,
-        "beneficiary_type": r.beneficiary_type,
-        "level": r.level,
-        "amount_cents": int(r.amount_cents or 0),
-        "currency": r.currency,
-        "method": r.method,
-        "status": r.status,
-        "paid_at": r.paid_at.isoformat() if r.paid_at else None,
-        "meta": r.meta_json or {},
-    } for r in rows]
+    return [
+        {
+            "id": r.id,
+            "period": r.period,
+            "beneficiary": r.beneficiary_name,
+            "beneficiary_ref": r.beneficiary_ref,
+            "beneficiary_type": r.beneficiary_type,
+            "level": r.level,
+            "amount_cents": int(r.amount_cents or 0),
+            "currency": r.currency,
+            "method": r.method,
+            "status": r.status,
+            "paid_at": r.paid_at.isoformat() if r.paid_at else None,
+            "meta": r.meta_json or {},
+        }
+        for r in rows
+    ]
 
 
 @router.post("/wl/payouts/run")
@@ -928,16 +1126,27 @@ def admin_wl_payouts_run(
         l1_amount = int(rec.get("l1_amount_cents") or 0)
         l2_amount = int(rec.get("l2_amount_cents") or 0)
 
-        def upsert(level: str, beneficiary_type: str, beneficiary_ref: str, beneficiary_name: str, amount_cents: int, method: str):
+        def upsert(
+            level: str,
+            beneficiary_type: str,
+            beneficiary_ref: str,
+            beneficiary_name: str,
+            amount_cents: int,
+            method: str,
+        ):
             nonlocal created_or_updated
             if amount_cents <= 0:
                 return
-            row = db.query(SuperAdminPayout).filter(
-                SuperAdminPayout.period == period,
-                SuperAdminPayout.level == level,
-                SuperAdminPayout.beneficiary_type == beneficiary_type,
-                SuperAdminPayout.beneficiary_ref == beneficiary_ref,
-            ).one_or_none()
+            row = (
+                db.query(SuperAdminPayout)
+                .filter(
+                    SuperAdminPayout.period == period,
+                    SuperAdminPayout.level == level,
+                    SuperAdminPayout.beneficiary_type == beneficiary_type,
+                    SuperAdminPayout.beneficiary_ref == beneficiary_ref,
+                )
+                .one_or_none()
+            )
             if not row:
                 row = SuperAdminPayout(
                     id=str(uuid.uuid4()),
@@ -962,17 +1171,26 @@ def admin_wl_payouts_run(
             created_or_updated += 1
 
         upsert("L1", "ADMIN_WL", admin_id, f"{brand} ({admin_id})", l1_amount, "BANK")
-        upsert("L2", "AFFILIATE_POOL", f"AFF_POOL::{admin_id}", f"Affiliates Pool ({brand})", l2_amount, "MANUAL")
+        upsert(
+            "L2",
+            "AFFILIATE_POOL",
+            f"AFF_POOL::{admin_id}",
+            f"Affiliates Pool ({brand})",
+            l2_amount,
+            "MANUAL",
+        )
 
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="PAYOUT_BATCH_RUN",
-        entity_type="PAYOUT_BATCH",
-        entity_id=period,
-        details={"period": period, "rows": created_or_updated},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="PAYOUT_BATCH_RUN",
+            entity_type="PAYOUT_BATCH",
+            entity_id=period,
+            details={"period": period, "rows": created_or_updated},
+        )
+    )
     db.commit()
     return {"ok": True, "period": period, "rows": created_or_updated}
 
@@ -984,7 +1202,11 @@ def admin_wl_payout_mark_paid(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    row = db.query(SuperAdminPayout).filter(SuperAdminPayout.id == payout_id).one_or_none()
+    row = (
+        db.query(SuperAdminPayout)
+        .filter(SuperAdminPayout.id == payout_id)
+        .one_or_none()
+    )
     if not row:
         raise HTTPException(status_code=404, detail="Payout non trovato")
     row.status = "PAID"
@@ -994,17 +1216,29 @@ def admin_wl_payout_mark_paid(
         meta["note"] = req.note
     row.meta_json = meta
     db.add(row)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="PAYOUT_MARKED_PAID",
-        entity_type="PAYOUT",
-        entity_id=row.id,
-        details={"period": row.period, "beneficiary": row.beneficiary_name, "amount_cents": row.amount_cents, "note": req.note},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="PAYOUT_MARKED_PAID",
+            entity_type="PAYOUT",
+            entity_id=row.id,
+            details={
+                "period": row.period,
+                "beneficiary": row.beneficiary_name,
+                "amount_cents": row.amount_cents,
+                "note": req.note,
+            },
+        )
+    )
     db.commit()
-    return {"ok": True, "id": row.id, "status": row.status, "paid_at": row.paid_at.isoformat() if row.paid_at else None}
+    return {
+        "ok": True,
+        "id": row.id,
+        "status": row.status,
+        "paid_at": row.paid_at.isoformat() if row.paid_at else None,
+    }
 
 
 def _seed_vps_nodes_if_empty(db: Session):
@@ -1014,19 +1248,29 @@ def _seed_vps_nodes_if_empty(db: Session):
         ("S1-CONT-FRA", "Contabo", "173.20.12.88", "Frankfurt, DE", 18, 25, "ONLINE"),
         ("S2-AWS-LON", "AWS", "54.120.44.12", "London, UK", 34, 48, "ONLINE"),
         ("S3-HTS-NY", "Hostinger", "109.11.23.4", "New York, US", 6, 12, "ONLINE"),
-        ("S4-DGO-AMS", "DigitalOcean", "188.166.50.2", "Amsterdam, NL", 0, 2, "PROVISIONING"),
+        (
+            "S4-DGO-AMS",
+            "DigitalOcean",
+            "188.166.50.2",
+            "Amsterdam, NL",
+            0,
+            2,
+            "PROVISIONING",
+        ),
     ]
     for i, provider, ip, loc, allocs, res, status in seed:
-        db.add(VpsNode(
-            id=i,
-            provider=provider,
-            ip=ip,
-            location=loc,
-            allocs=allocs,
-            res_pct=res,
-            status=status,
-            notes="seed",
-        ))
+        db.add(
+            VpsNode(
+                id=i,
+                provider=provider,
+                ip=ip,
+                location=loc,
+                allocs=allocs,
+                res_pct=res,
+                status=status,
+                notes="seed",
+            )
+        )
     db.commit()
 
 
@@ -1037,17 +1281,22 @@ def admin_vps_nodes(
 ):
     _seed_vps_nodes_if_empty(db)
     rows = db.query(VpsNode).order_by(VpsNode.created_at.asc()).all()
-    return [{
-        "id": r.id,
-        "provider": r.provider,
-        "ip": r.ip,
-        "location": r.location,
-        "allocs": int(r.allocs or 0),
-        "res": f"{int(r.res_pct or 0)}%",
-        "status": r.status,
-        "notes": r.notes,
-        "last_reboot_at": r.last_reboot_at.isoformat() if r.last_reboot_at else None,
-    } for r in rows]
+    return [
+        {
+            "id": r.id,
+            "provider": r.provider,
+            "ip": r.ip,
+            "location": r.location,
+            "allocs": int(r.allocs or 0),
+            "res": f"{int(r.res_pct or 0)}%",
+            "status": r.status,
+            "notes": r.notes,
+            "last_reboot_at": r.last_reboot_at.isoformat()
+            if r.last_reboot_at
+            else None,
+        }
+        for r in rows
+    ]
 
 
 @router.post("/vps/nodes/provision")
@@ -1057,7 +1306,7 @@ def admin_vps_provision(
     db: Session = Depends(get_db),
 ):
     _seed_vps_nodes_if_empty(db)
-    node_id = f"S{db.query(VpsNode).count()+1}-NEW"
+    node_id = f"S{db.query(VpsNode).count() + 1}-NEW"
     row = VpsNode(
         id=node_id,
         provider=(req.provider or "Custom").strip() or "Custom",
@@ -1069,17 +1318,30 @@ def admin_vps_provision(
         notes=req.notes,
     )
     db.add(row)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="VPS_PROVISION_REQUESTED",
-        entity_type="VPS_NODE",
-        entity_id=node_id,
-        details={"provider": row.provider, "location": row.location},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="VPS_PROVISION_REQUESTED",
+            entity_type="VPS_NODE",
+            entity_id=node_id,
+            details={"provider": row.provider, "location": row.location},
+        )
+    )
     db.commit()
-    return {"ok": True, "node": {"id": row.id, "provider": row.provider, "ip": row.ip, "location": row.location, "allocs": row.allocs, "res": f"{row.res_pct}%", "status": row.status}}
+    return {
+        "ok": True,
+        "node": {
+            "id": row.id,
+            "provider": row.provider,
+            "ip": row.ip,
+            "location": row.location,
+            "allocs": row.allocs,
+            "res": f"{row.res_pct}%",
+            "status": row.status,
+        },
+    }
 
 
 @router.post("/vps/nodes/{node_id}/reboot")
@@ -1094,17 +1356,26 @@ def admin_vps_reboot(
     row.status = "REBOOTING"
     row.last_reboot_at = datetime.now(timezone.utc)
     db.add(row)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="VPS_REBOOT_REQUESTED",
-        entity_type="VPS_NODE",
-        entity_id=row.id,
-        details={"provider": row.provider},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="VPS_REBOOT_REQUESTED",
+            entity_type="VPS_NODE",
+            entity_id=row.id,
+            details={"provider": row.provider},
+        )
+    )
     db.commit()
-    return {"ok": True, "id": row.id, "status": row.status, "last_reboot_at": row.last_reboot_at.isoformat() if row.last_reboot_at else None}
+    return {
+        "ok": True,
+        "id": row.id,
+        "status": row.status,
+        "last_reboot_at": row.last_reboot_at.isoformat()
+        if row.last_reboot_at
+        else None,
+    }
 
 
 @router.get("/licenses", response_model=list[LicenseOut])
@@ -1112,10 +1383,16 @@ def list_licenses(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     q = db.query(License)
     if admin_scope:
-        q = q.join(Client, License.client_id == Client.id).filter(Client.admin_wl_id == admin_scope.id)
+        q = q.join(Client, License.client_id == Client.id).filter(
+            Client.admin_wl_id == admin_scope.id
+        )
     rows = q.order_by(License.created_at.desc()).all()
     return [LicenseOut.model_validate(r, from_attributes=True) for r in rows]
 
@@ -1126,13 +1403,21 @@ def create_license_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     if admin_scope:
         if not req.client_id:
-            raise HTTPException(status_code=400, detail="Per Admin WL il client_id è obbligatorio")
+            raise HTTPException(
+                status_code=400, detail="Per Admin WL il client_id è obbligatorio"
+            )
         client = db.query(Client).filter(Client.id == req.client_id).one_or_none()
         _enforce_client_scope(client, admin_scope)
-    lic = create_license(db, client_id=req.client_id, plan_code=req.plan_code, days=req.days)
+    lic = create_license(
+        db, client_id=req.client_id, plan_code=req.plan_code, days=req.days
+    )
     return LicenseOut.model_validate(lic, from_attributes=True)
 
 
@@ -1143,11 +1428,17 @@ def replace_license_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     current = _get_scoped_license(db, license_id, admin_scope)
     max_hours = _max_grace_hours_for_actor(db, user, admin_scope)
     if max_hours is not None and req.grace_hours > max_hours:
-        raise HTTPException(status_code=403, detail=f"Grace window massima consentita: {max_hours} ore")
+        raise HTTPException(
+            status_code=403, detail=f"Grace window massima consentita: {max_hours} ore"
+        )
     try:
         replacement = apply_license_replacement(
             db,
@@ -1171,11 +1462,17 @@ def update_license_grace_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     license_row = _get_scoped_license(db, license_id, admin_scope)
     max_hours = _max_grace_hours_for_actor(db, user, admin_scope)
     if max_hours is not None and req.grace_hours > max_hours:
-        raise HTTPException(status_code=403, detail=f"Grace window massima consentita: {max_hours} ore")
+        raise HTTPException(
+            status_code=403, detail=f"Grace window massima consentita: {max_hours} ore"
+        )
     try:
         updated = set_license_grace_window(
             db,
@@ -1196,18 +1493,24 @@ def revoke_license_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     lic = _get_scoped_license(db, license_id, admin_scope)
     lic.status = "REVOKED"
     lic.updated_at = datetime.now(timezone.utc)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        action="LICENSE_REVOKED",
-        entity_type="LICENSE",
-        entity_id=license_id,
-        details={},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            action="LICENSE_REVOKED",
+            entity_type="LICENSE",
+            entity_id=license_id,
+            details={},
+        )
+    )
     db.commit()
     return {"ok": True, "license_id": license_id, "status": "REVOKED"}
 
@@ -1219,17 +1522,23 @@ def upgrade_license_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     lic = _get_scoped_license(db, license_id, admin_scope)
     lic.plan_code = req.plan_code
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        action="LICENSE_UPGRADED",
-        entity_type="LICENSE",
-        entity_id=license_id,
-        details={"new_plan": req.plan_code},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            action="LICENSE_UPGRADED",
+            entity_type="LICENSE",
+            entity_id=license_id,
+            details={"new_plan": req.plan_code},
+        )
+    )
     db.commit()
     return {"ok": True, "license_id": license_id, "plan_code": req.plan_code}
 
@@ -1240,18 +1549,24 @@ def remote_kill_license_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     lic = _get_scoped_license(db, license_id, admin_scope)
     lic.status = "SUSPENDED"
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        action="REMOTE_KILL_EXECUTED",
-        entity_type="LICENSE",
-        entity_id=license_id,
-        level="WARNING",
-        details={"install_id": lic.install_id},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            action="REMOTE_KILL_EXECUTED",
+            entity_type="LICENSE",
+            entity_id=license_id,
+            level="WARNING",
+            details={"install_id": lic.install_id},
+        )
+    )
     db.commit()
     return {"ok": True, "license_id": license_id, "status": "SUSPENDED"}
 
@@ -1261,10 +1576,16 @@ def export_kill_list(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     q = db.query(License).filter(License.status.in_(["SUSPENDED", "REVOKED"]))
     if admin_scope:
-        q = q.join(Client, License.client_id == Client.id).filter(Client.admin_wl_id == admin_scope.id)
+        q = q.join(Client, License.client_id == Client.id).filter(
+            Client.admin_wl_id == admin_scope.id
+        )
     disabled = q.all()
     return {
         "disabled_installs": [l.install_id for l in disabled if l.install_id],
@@ -1279,7 +1600,12 @@ def list_logs(
     db: Session = Depends(get_db),
     limit: int = 100,
 ):
-    rows = db.query(AuditLog).order_by(AuditLog.created_at.desc()).limit(min(limit, 500)).all()
+    rows = (
+        db.query(AuditLog)
+        .order_by(AuditLog.created_at.desc())
+        .limit(min(limit, 500))
+        .all()
+    )
     return [AuditLogOut.model_validate(r, from_attributes=True) for r in rows]
 
 
@@ -1289,10 +1615,16 @@ def list_invoices(
     db: Session = Depends(get_db),
     limit: int = 100,
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     q = db.query(Invoice)
     if admin_scope:
-        q = q.join(Client, Invoice.client_id == Client.id).filter(Client.admin_wl_id == admin_scope.id)
+        q = q.join(Client, Invoice.client_id == Client.id).filter(
+            Client.admin_wl_id == admin_scope.id
+        )
     rows = q.order_by(Invoice.created_at.desc()).limit(min(limit, 500)).all()
     client_ids = [r.client_id for r in rows if r.client_id]
     clients = {}
@@ -1318,11 +1650,28 @@ def update_admin_wl_self_branding(
     db: Session = Depends(get_db),
 ):
     row = _resolve_admin_wl_for_user(db, user, required=True)
-    branding = db.query(AdminBranding).filter(AdminBranding.admin_wl_id == row.id).one_or_none()
+    branding = (
+        db.query(AdminBranding)
+        .filter(AdminBranding.admin_wl_id == row.id)
+        .one_or_none()
+    )
     if not branding:
-        branding = AdminBranding(id=str(uuid.uuid4()), admin_wl_id=row.id, brand_name=row.brand_name, config_json={})
+        branding = AdminBranding(
+            id=str(uuid.uuid4()),
+            admin_wl_id=row.id,
+            brand_name=row.brand_name,
+            config_json={},
+        )
         db.add(branding)
-    for field in ["brand_name", "logo_url", "primary_color", "secondary_color", "custom_domain", "sender_name", "sender_email"]:
+    for field in [
+        "brand_name",
+        "logo_url",
+        "primary_color",
+        "secondary_color",
+        "custom_domain",
+        "sender_name",
+        "sender_email",
+    ]:
         val = getattr(req, field)
         if val is not None:
             setattr(branding, field, val)
@@ -1330,15 +1679,20 @@ def update_admin_wl_self_branding(
         branding.config_json = req.config_json
     if req.brand_name:
         row.brand_name = req.brand_name
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN_WL",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_WL_SELF_BRANDING_UPDATED",
-        entity_type="ADMIN_WL",
-        entity_id=row.id,
-        details={"brand_name": branding.brand_name, "custom_domain": branding.custom_domain},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN_WL",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_WL_SELF_BRANDING_UPDATED",
+            entity_type="ADMIN_WL",
+            entity_id=row.id,
+            details={
+                "brand_name": branding.brand_name,
+                "custom_domain": branding.custom_domain,
+            },
+        )
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
@@ -1354,16 +1708,19 @@ def list_admin_wl_plans(
     db: Session = Depends(get_db),
 ):
     rows = db.query(AdminPlan).order_by(AdminPlan.code.asc()).all()
-    return [{
-        "id": r.id,
-        "code": r.code,
-        "display_name": r.display_name,
-        "monthly_price_cents": r.monthly_price_cents,
-        "currency": r.currency,
-        "grace_days_default": r.grace_days_default,
-        "default_limits": r.default_limits or {},
-        "active": r.active,
-    } for r in rows]
+    return [
+        {
+            "id": r.id,
+            "code": r.code,
+            "display_name": r.display_name,
+            "monthly_price_cents": r.monthly_price_cents,
+            "currency": r.currency,
+            "grace_days_default": r.grace_days_default,
+            "default_limits": r.default_limits or {},
+            "active": r.active,
+        }
+        for r in rows
+    ]
 
 
 @router.get("/wl/admins")
@@ -1381,16 +1738,23 @@ def create_admin_wl(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    plan = db.query(AdminPlan).filter(AdminPlan.code == req.admin_plan_code, AdminPlan.active.is_(True)).one_or_none()
+    email_norm = req.email.strip().lower()
+    plan = (
+        db.query(AdminPlan)
+        .filter(AdminPlan.code == req.admin_plan_code, AdminPlan.active.is_(True))
+        .one_or_none()
+    )
     if not plan:
         raise HTTPException(status_code=404, detail="Piano Admin non trovato")
-    if db.query(AdminWL).filter(AdminWL.email == req.email).one_or_none():
-        raise HTTPException(status_code=409, detail="Admin con questa email già esistente")
+    if db.query(AdminWL).filter(AdminWL.email == email_norm).one_or_none():
+        raise HTTPException(
+            status_code=409, detail="Admin con questa email già esistente"
+        )
 
     now = datetime.now(timezone.utc)
     row = AdminWL(
         id=str(uuid.uuid4()),
-        email=req.email,
+        email=email_norm,
         contact_name=req.contact_name,
         brand_name=req.brand_name,
         status="PENDING_PAYMENT",
@@ -1411,33 +1775,159 @@ def create_admin_wl(
         auto_renew=True,
     )
     db.add(sub)
-    db.add(AdminOperationalLimits(
-        id=str(uuid.uuid4()),
-        admin_wl_id=row.id,
-        source="PLAN",
-        limits_json=plan.default_limits or {},
-    ))
-    db.add(AdminBranding(
-        id=str(uuid.uuid4()),
-        admin_wl_id=row.id,
-        brand_name=req.brand_name,
-        sender_name=req.brand_name,
-        sender_email=req.email,
-        config_json={},
-    ))
-    _create_admin_status_history(db, row.id, None, "PENDING_PAYMENT", "Nuovo admin creato dal Super Admin", getattr(user, "id", None))
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_WL_CREATED",
-        entity_type="ADMIN_WL",
-        entity_id=row.id,
-        details={"plan_code": plan.code, "brand_name": req.brand_name, "email": req.email},
-    ))
+    db.add(
+        AdminOperationalLimits(
+            id=str(uuid.uuid4()),
+            admin_wl_id=row.id,
+            source="PLAN",
+            limits_json=plan.default_limits or {},
+        )
+    )
+    db.add(
+        AdminBranding(
+            id=str(uuid.uuid4()),
+            admin_wl_id=row.id,
+            brand_name=req.brand_name,
+            sender_name=req.brand_name,
+            sender_email=email_norm,
+            config_json={},
+        )
+    )
+
+    role_sync: dict[str, object] = {
+        "attempted": True,
+        "email": email_norm,
+        "updated": False,
+    }
+    linked_user = db.query(User).filter(User.email == email_norm).one_or_none()
+    if linked_user:
+        previous_role = linked_user.role
+        linked_user.role = "ADMIN_WL"
+        row.user_id = linked_user.id
+        db.add(linked_user)
+        role_sync.update(
+            {
+                "updated": True,
+                "user_id": linked_user.id,
+                "previous_role": previous_role,
+                "new_role": linked_user.role,
+            }
+        )
+
+    _create_admin_status_history(
+        db,
+        row.id,
+        None,
+        "PENDING_PAYMENT",
+        "Nuovo admin creato dal Super Admin",
+        getattr(user, "id", None),
+    )
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_WL_CREATED",
+            entity_type="ADMIN_WL",
+            entity_id=row.id,
+            details={
+                "plan_code": plan.code,
+                "brand_name": req.brand_name,
+                "email": email_norm,
+                "role_sync": role_sync,
+            },
+        )
+    )
     db.commit()
     db.refresh(row)
-    return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
+    return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row), "role_sync": role_sync}
+
+
+@router.post("/users/assign-role")
+def assign_user_role(
+    req: UserRoleAssignRequest,
+    user=Depends(require_roles("SUPER_ADMIN")),
+    db: Session = Depends(get_db),
+):
+    role = (req.role or "").strip().upper()
+    allowed_roles = {"CLIENT", "ADMIN_WL", "SUPER_ADMIN", "AFFILIATE"}
+    if role not in allowed_roles:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ruolo non valido. Consentiti: {', '.join(sorted(allowed_roles))}",
+        )
+
+    email_norm = (req.email or "").strip().lower() or None
+    user_id = (req.user_id or "").strip() or None
+    if not email_norm and not user_id:
+        raise HTTPException(status_code=400, detail="Specifica email oppure user_id")
+
+    target = None
+    if user_id:
+        target = db.query(User).filter(User.id == user_id).one_or_none()
+    if not target and email_norm:
+        target = db.query(User).filter(User.email == email_norm).one_or_none()
+    if not target:
+        raise HTTPException(
+            status_code=404,
+            detail="Utente non trovato. Deve prima registrarsi su Clerk",
+        )
+
+    if (
+        getattr(target, "id", None) == getattr(user, "id", None)
+        and role != "SUPER_ADMIN"
+    ):
+        raise HTTPException(
+            status_code=400, detail="Non puoi rimuovere il tuo ruolo SUPER_ADMIN"
+        )
+
+    previous_role = target.role
+    target.role = role
+    db.add(target)
+
+    linked_admin_wl_id = None
+    if role == "ADMIN_WL":
+        admin_row = (
+            db.query(AdminWL)
+            .filter((AdminWL.user_id == target.id) | (AdminWL.email == target.email))
+            .order_by(AdminWL.created_at.desc())
+            .first()
+        )
+        if admin_row and (not admin_row.user_id or admin_row.user_id == target.id):
+            admin_row.user_id = target.id
+            admin_row.email = target.email
+            db.add(admin_row)
+            linked_admin_wl_id = admin_row.id
+
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="USER_ROLE_CHANGED",
+            entity_type="USER",
+            entity_id=target.id,
+            details={
+                "email": target.email,
+                "previous_role": previous_role,
+                "new_role": role,
+                "linked_admin_wl_id": linked_admin_wl_id,
+            },
+        )
+    )
+    db.commit()
+    db.refresh(target)
+    return {
+        "ok": True,
+        "user": {
+            "id": target.id,
+            "email": target.email,
+            "role": target.role,
+            "status": target.status,
+        },
+        "previous_role": previous_role,
+        "linked_admin_wl_id": linked_admin_wl_id,
+    }
 
 
 @router.get("/wl/admins/{admin_wl_id}")
@@ -1449,17 +1939,26 @@ def get_admin_wl(
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
-    history = db.query(AdminStatusHistory).filter(AdminStatusHistory.admin_wl_id == admin_wl_id).order_by(AdminStatusHistory.created_at.desc()).limit(50).all()
+    history = (
+        db.query(AdminStatusHistory)
+        .filter(AdminStatusHistory.admin_wl_id == admin_wl_id)
+        .order_by(AdminStatusHistory.created_at.desc())
+        .limit(50)
+        .all()
+    )
     return {
         "ok": True,
         "admin_wl": _admin_wl_to_dict(db, row),
-        "status_history": [{
-            "id": h.id,
-            "from_status": h.from_status,
-            "to_status": h.to_status,
-            "reason": h.reason,
-            "created_at": h.created_at.isoformat() if h.created_at else None,
-        } for h in history],
+        "status_history": [
+            {
+                "id": h.id,
+                "from_status": h.from_status,
+                "to_status": h.to_status,
+                "reason": h.reason,
+                "created_at": h.created_at.isoformat() if h.created_at else None,
+            }
+            for h in history
+        ],
     }
 
 
@@ -1478,7 +1977,11 @@ def update_admin_wl(
         row.contact_name = req.contact_name
     if req.brand_name is not None:
         row.brand_name = req.brand_name
-        branding = db.query(AdminBranding).filter(AdminBranding.admin_wl_id == row.id).one_or_none()
+        branding = (
+            db.query(AdminBranding)
+            .filter(AdminBranding.admin_wl_id == row.id)
+            .one_or_none()
+        )
         if branding:
             branding.brand_name = req.brand_name
     if req.fee_pct_l1 is not None:
@@ -1486,29 +1989,51 @@ def update_admin_wl(
     if req.notes is not None:
         row.notes = req.notes
     if req.admin_plan_code is not None:
-        plan = db.query(AdminPlan).filter(AdminPlan.code == req.admin_plan_code).one_or_none()
+        plan = (
+            db.query(AdminPlan)
+            .filter(AdminPlan.code == req.admin_plan_code)
+            .one_or_none()
+        )
         if not plan:
             raise HTTPException(status_code=404, detail="Piano Admin non trovato")
         row.admin_plan_code = plan.code
-        sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
+        sub = (
+            db.query(AdminSubscription)
+            .filter(AdminSubscription.admin_wl_id == row.id)
+            .order_by(AdminSubscription.created_at.desc())
+            .first()
+        )
         if sub:
             sub.admin_plan_code = plan.code
-        limits = db.query(AdminOperationalLimits).filter(AdminOperationalLimits.admin_wl_id == row.id).one_or_none()
+        limits = (
+            db.query(AdminOperationalLimits)
+            .filter(AdminOperationalLimits.admin_wl_id == row.id)
+            .one_or_none()
+        )
         if limits and limits.source == "PLAN":
             limits.limits_json = plan.default_limits or {}
     if req.status is not None:
         row.status = req.status.upper()
         if row.status != prev_status:
-            _create_admin_status_history(db, row.id, prev_status, row.status, "Aggiornamento admin manuale", getattr(user, "id", None))
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_WL_UPDATED",
-        entity_type="ADMIN_WL",
-        entity_id=row.id,
-        details={"status": row.status, "plan": row.admin_plan_code},
-    ))
+            _create_admin_status_history(
+                db,
+                row.id,
+                prev_status,
+                row.status,
+                "Aggiornamento admin manuale",
+                getattr(user, "id", None),
+            )
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_WL_UPDATED",
+            entity_type="ADMIN_WL",
+            entity_id=row.id,
+            details={"status": row.status, "plan": row.admin_plan_code},
+        )
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
@@ -1523,22 +2048,33 @@ def update_admin_wl_limits(
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
-    limits = db.query(AdminOperationalLimits).filter(AdminOperationalLimits.admin_wl_id == admin_wl_id).one_or_none()
+    limits = (
+        db.query(AdminOperationalLimits)
+        .filter(AdminOperationalLimits.admin_wl_id == admin_wl_id)
+        .one_or_none()
+    )
     if not limits:
-        limits = AdminOperationalLimits(id=str(uuid.uuid4()), admin_wl_id=admin_wl_id, source=req.source.upper(), limits_json=req.limits_json or {})
+        limits = AdminOperationalLimits(
+            id=str(uuid.uuid4()),
+            admin_wl_id=admin_wl_id,
+            source=req.source.upper(),
+            limits_json=req.limits_json or {},
+        )
         db.add(limits)
     else:
         limits.source = req.source.upper()
         limits.limits_json = req.limits_json or {}
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_WL_LIMITS_UPDATED",
-        entity_type="ADMIN_WL",
-        entity_id=admin_wl_id,
-        details={"source": limits.source, "limits": limits.limits_json},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_WL_LIMITS_UPDATED",
+            entity_type="ADMIN_WL",
+            entity_id=admin_wl_id,
+            details={"source": limits.source, "limits": limits.limits_json},
+        )
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
@@ -1553,11 +2089,28 @@ def update_admin_wl_branding(
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
-    branding = db.query(AdminBranding).filter(AdminBranding.admin_wl_id == admin_wl_id).one_or_none()
+    branding = (
+        db.query(AdminBranding)
+        .filter(AdminBranding.admin_wl_id == admin_wl_id)
+        .one_or_none()
+    )
     if not branding:
-        branding = AdminBranding(id=str(uuid.uuid4()), admin_wl_id=admin_wl_id, brand_name=row.brand_name, config_json={})
+        branding = AdminBranding(
+            id=str(uuid.uuid4()),
+            admin_wl_id=admin_wl_id,
+            brand_name=row.brand_name,
+            config_json={},
+        )
         db.add(branding)
-    for field in ["brand_name", "logo_url", "primary_color", "secondary_color", "custom_domain", "sender_name", "sender_email"]:
+    for field in [
+        "brand_name",
+        "logo_url",
+        "primary_color",
+        "secondary_color",
+        "custom_domain",
+        "sender_name",
+        "sender_email",
+    ]:
         val = getattr(req, field)
         if val is not None:
             setattr(branding, field, val)
@@ -1565,81 +2118,154 @@ def update_admin_wl_branding(
         branding.config_json = req.config_json
     if req.brand_name:
         row.brand_name = req.brand_name
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_WL_BRANDING_UPDATED",
-        entity_type="ADMIN_WL",
-        entity_id=admin_wl_id,
-        details={"custom_domain": branding.custom_domain, "brand_name": branding.brand_name},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_WL_BRANDING_UPDATED",
+            entity_type="ADMIN_WL",
+            entity_id=admin_wl_id,
+            details={
+                "custom_domain": branding.custom_domain,
+                "brand_name": branding.brand_name,
+            },
+        )
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
 
 @router.post("/wl/admins/{admin_wl_id}/activate")
-def activate_admin_wl(admin_wl_id: str, req: AdminLifecycleRequest, user=Depends(require_roles("SUPER_ADMIN")), db: Session = Depends(get_db)):
+def activate_admin_wl(
+    admin_wl_id: str,
+    req: AdminLifecycleRequest,
+    user=Depends(require_roles("SUPER_ADMIN")),
+    db: Session = Depends(get_db),
+):
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
     prev = row.status
     row.status = "ACTIVE"
-    sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.admin_wl_id == row.id)
+        .order_by(AdminSubscription.created_at.desc())
+        .first()
+    )
     if sub:
         sub.status = "ACTIVE"
         now = datetime.now(timezone.utc)
         sub.current_period_start = sub.current_period_start or now
         sub.current_period_end = sub.current_period_end or (now + timedelta(days=30))
         sub.grace_until = None
-    _create_admin_status_history(db, row.id, prev, "ACTIVE", req.reason or "Attivazione admin", getattr(user, "id", None))
+    _create_admin_status_history(
+        db,
+        row.id,
+        prev,
+        "ACTIVE",
+        req.reason or "Attivazione admin",
+        getattr(user, "id", None),
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
 
 @router.post("/wl/admins/{admin_wl_id}/suspend")
-def suspend_admin_wl(admin_wl_id: str, req: AdminLifecycleRequest, user=Depends(require_roles("SUPER_ADMIN")), db: Session = Depends(get_db)):
+def suspend_admin_wl(
+    admin_wl_id: str,
+    req: AdminLifecycleRequest,
+    user=Depends(require_roles("SUPER_ADMIN")),
+    db: Session = Depends(get_db),
+):
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
     prev = row.status
     row.status = "SUSPENDED"
-    sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.admin_wl_id == row.id)
+        .order_by(AdminSubscription.created_at.desc())
+        .first()
+    )
     if sub:
         sub.status = "SUSPENDED"
-    _create_admin_status_history(db, row.id, prev, "SUSPENDED", req.reason or "Sospensione admin", getattr(user, "id", None))
+    _create_admin_status_history(
+        db,
+        row.id,
+        prev,
+        "SUSPENDED",
+        req.reason or "Sospensione admin",
+        getattr(user, "id", None),
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
 
 @router.post("/wl/admins/{admin_wl_id}/revoke")
-def revoke_admin_wl(admin_wl_id: str, req: AdminLifecycleRequest, user=Depends(require_roles("SUPER_ADMIN")), db: Session = Depends(get_db)):
+def revoke_admin_wl(
+    admin_wl_id: str,
+    req: AdminLifecycleRequest,
+    user=Depends(require_roles("SUPER_ADMIN")),
+    db: Session = Depends(get_db),
+):
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
     prev = row.status
     row.status = "REVOKED"
-    sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.admin_wl_id == row.id)
+        .order_by(AdminSubscription.created_at.desc())
+        .first()
+    )
     if sub:
         sub.status = "REVOKED"
-    _create_admin_status_history(db, row.id, prev, "REVOKED", req.reason or "Revoca admin", getattr(user, "id", None))
+    _create_admin_status_history(
+        db,
+        row.id,
+        prev,
+        "REVOKED",
+        req.reason or "Revoca admin",
+        getattr(user, "id", None),
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
 
 @router.post("/wl/admins/{admin_wl_id}/force-grace")
-def force_grace_admin_wl(admin_wl_id: str, req: AdminLifecycleRequest, user=Depends(require_roles("SUPER_ADMIN")), db: Session = Depends(get_db)):
+def force_grace_admin_wl(
+    admin_wl_id: str,
+    req: AdminLifecycleRequest,
+    user=Depends(require_roles("SUPER_ADMIN")),
+    db: Session = Depends(get_db),
+):
     row = db.query(AdminWL).filter(AdminWL.id == admin_wl_id).one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Admin WL non trovato")
     prev = row.status
     row.status = "GRACE_PERIOD"
-    sub = db.query(AdminSubscription).filter(AdminSubscription.admin_wl_id == row.id).order_by(AdminSubscription.created_at.desc()).first()
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.admin_wl_id == row.id)
+        .order_by(AdminSubscription.created_at.desc())
+        .first()
+    )
     if sub:
         sub.status = "GRACE_PERIOD"
         grace_days = req.grace_days or 7
         sub.grace_until = datetime.now(timezone.utc) + timedelta(days=grace_days)
-    _create_admin_status_history(db, row.id, prev, "GRACE_PERIOD", req.reason or "Grace period forzato", getattr(user, "id", None))
+    _create_admin_status_history(
+        db,
+        row.id,
+        prev,
+        "GRACE_PERIOD",
+        req.reason or "Grace period forzato",
+        getattr(user, "id", None),
+    )
     db.commit()
     return {"ok": True, "admin_wl": _admin_wl_to_dict(db, row)}
 
@@ -1655,7 +2281,12 @@ def list_admin_billing_invoices(
     db: Session = Depends(get_db),
     limit: int = 100,
 ):
-    rows = db.query(AdminBillingDocument).order_by(AdminBillingDocument.created_at.desc()).limit(min(limit, 500)).all()
+    rows = (
+        db.query(AdminBillingDocument)
+        .order_by(AdminBillingDocument.created_at.desc())
+        .limit(min(limit, 500))
+        .all()
+    )
     return [_admin_billing_doc_to_dict(db, r) for r in rows]
 
 
@@ -1681,19 +2312,29 @@ def issue_admin_billing_invoice(
         amount_cents=req.amount_cents,
         currency=req.currency.upper(),
         description=req.description,
-        fiscal_snapshot={"owner_type": "ADMIN", "brand_name": admin_row.brand_name, "email": admin_row.email},
+        fiscal_snapshot={
+            "owner_type": "ADMIN",
+            "brand_name": admin_row.brand_name,
+            "email": admin_row.email,
+        },
         issued_at=datetime.now(timezone.utc),
     )
     db.add(doc)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_BILLING_ISSUED",
-        entity_type="ADMIN_BILLING_DOCUMENT",
-        entity_id=doc.id,
-        details={"admin_wl_id": admin_row.id, "invoice_number": number, "amount_cents": req.amount_cents},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_BILLING_ISSUED",
+            entity_type="ADMIN_BILLING_DOCUMENT",
+            entity_id=doc.id,
+            details={
+                "admin_wl_id": admin_row.id,
+                "invoice_number": number,
+                "amount_cents": req.amount_cents,
+            },
+        )
+    )
     db.commit()
     return {"ok": True, "invoice": _admin_billing_doc_to_dict(db, doc)}
 
@@ -1704,7 +2345,11 @@ def mark_admin_billing_invoice_paid(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    doc = db.query(AdminBillingDocument).filter(AdminBillingDocument.invoice_number == invoice_number).one_or_none()
+    doc = (
+        db.query(AdminBillingDocument)
+        .filter(AdminBillingDocument.invoice_number == invoice_number)
+        .one_or_none()
+    )
     if not doc:
         raise HTTPException(status_code=404, detail="Fattura Admin non trovata")
     doc.status = "PAID"
@@ -1725,23 +2370,38 @@ def mark_admin_billing_invoice_paid(
     if admin_row:
         prev = admin_row.status
         admin_row.status = "ACTIVE"
-        _create_admin_status_history(db, admin_row.id, prev, "ACTIVE", "Pagamento fattura admin confermato", getattr(user, "id", None))
-    sub = db.query(AdminSubscription).filter(AdminSubscription.id == doc.subscription_id).one_or_none() if doc.subscription_id else None
+        _create_admin_status_history(
+            db,
+            admin_row.id,
+            prev,
+            "ACTIVE",
+            "Pagamento fattura admin confermato",
+            getattr(user, "id", None),
+        )
+    sub = (
+        db.query(AdminSubscription)
+        .filter(AdminSubscription.id == doc.subscription_id)
+        .one_or_none()
+        if doc.subscription_id
+        else None
+    )
     if sub:
         sub.status = "ACTIVE"
         now = datetime.now(timezone.utc)
         sub.current_period_start = now
         sub.current_period_end = now + timedelta(days=30)
         sub.grace_until = None
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="SUPER_ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_BILLING_MARKED_PAID",
-        entity_type="ADMIN_BILLING_DOCUMENT",
-        entity_id=doc.id,
-        details={"invoice_number": invoice_number},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="SUPER_ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_BILLING_MARKED_PAID",
+            entity_type="ADMIN_BILLING_DOCUMENT",
+            entity_id=doc.id,
+            details={"invoice_number": invoice_number},
+        )
+    )
     db.commit()
     return {"ok": True, "invoice": _admin_billing_doc_to_dict(db, doc)}
 
@@ -1752,22 +2412,56 @@ def list_admin_billing_payments(
     db: Session = Depends(get_db),
     limit: int = 200,
 ):
-    rows = db.query(AdminPayment).order_by(AdminPayment.created_at.desc()).limit(min(limit, 500)).all()
-    admins = {a.id: a for a in db.query(AdminWL).filter(AdminWL.id.in_([r.admin_wl_id for r in rows if r.admin_wl_id])).all()} if rows else {}
-    docs = {d.id: d for d in db.query(AdminBillingDocument).filter(AdminBillingDocument.id.in_([r.billing_document_id for r in rows if r.billing_document_id])).all()} if rows else {}
-    return [{
-        "id": r.id,
-        "admin_wl_id": r.admin_wl_id,
-        "admin_brand_name": admins.get(r.admin_wl_id).brand_name if admins.get(r.admin_wl_id) else None,
-        "billing_document_id": r.billing_document_id,
-        "invoice_number": docs.get(r.billing_document_id).invoice_number if docs.get(r.billing_document_id) else None,
-        "method": r.method,
-        "status": r.status,
-        "amount_cents": r.amount_cents,
-        "currency": r.currency,
-        "paid_at": r.paid_at.isoformat() if r.paid_at else None,
-        "created_at": r.created_at.isoformat() if r.created_at else None,
-    } for r in rows]
+    rows = (
+        db.query(AdminPayment)
+        .order_by(AdminPayment.created_at.desc())
+        .limit(min(limit, 500))
+        .all()
+    )
+    admins = (
+        {
+            a.id: a
+            for a in db.query(AdminWL)
+            .filter(AdminWL.id.in_([r.admin_wl_id for r in rows if r.admin_wl_id]))
+            .all()
+        }
+        if rows
+        else {}
+    )
+    docs = (
+        {
+            d.id: d
+            for d in db.query(AdminBillingDocument)
+            .filter(
+                AdminBillingDocument.id.in_(
+                    [r.billing_document_id for r in rows if r.billing_document_id]
+                )
+            )
+            .all()
+        }
+        if rows
+        else {}
+    )
+    return [
+        {
+            "id": r.id,
+            "admin_wl_id": r.admin_wl_id,
+            "admin_brand_name": admins.get(r.admin_wl_id).brand_name
+            if admins.get(r.admin_wl_id)
+            else None,
+            "billing_document_id": r.billing_document_id,
+            "invoice_number": docs.get(r.billing_document_id).invoice_number
+            if docs.get(r.billing_document_id)
+            else None,
+            "method": r.method,
+            "status": r.status,
+            "amount_cents": r.amount_cents,
+            "currency": r.currency,
+            "paid_at": r.paid_at.isoformat() if r.paid_at else None,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
 
 
 @router.post("/wl/billing/payments/manual/submit")
@@ -1776,15 +2470,25 @@ def submit_admin_manual_payment(
     _user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    doc = db.query(AdminBillingDocument).filter(AdminBillingDocument.id == req.billing_document_id).one_or_none()
+    doc = (
+        db.query(AdminBillingDocument)
+        .filter(AdminBillingDocument.id == req.billing_document_id)
+        .one_or_none()
+    )
     if not doc:
         raise HTTPException(status_code=404, detail="Documento Admin non trovato")
-    existing = db.query(AdminManualPaymentSubmission).filter(
-        AdminManualPaymentSubmission.billing_document_id == doc.id,
-        AdminManualPaymentSubmission.status == "PENDING",
-    ).one_or_none()
+    existing = (
+        db.query(AdminManualPaymentSubmission)
+        .filter(
+            AdminManualPaymentSubmission.billing_document_id == doc.id,
+            AdminManualPaymentSubmission.status == "PENDING",
+        )
+        .one_or_none()
+    )
     if existing:
-        raise HTTPException(status_code=409, detail="Esiste già una verifica manuale pendente")
+        raise HTTPException(
+            status_code=409, detail="Esiste già una verifica manuale pendente"
+        )
     pay = AdminPayment(
         id=str(uuid.uuid4()),
         admin_wl_id=doc.admin_wl_id,
@@ -1824,27 +2528,64 @@ def list_admin_manual_payments(
     status: str | None = None,
     limit: int = 100,
 ):
-    q = db.query(AdminManualPaymentSubmission).order_by(AdminManualPaymentSubmission.submitted_at.desc())
+    q = db.query(AdminManualPaymentSubmission).order_by(
+        AdminManualPaymentSubmission.submitted_at.desc()
+    )
     if status:
         q = q.filter(AdminManualPaymentSubmission.status == status.upper())
     rows = q.limit(min(limit, 500)).all()
-    admins = {a.id: a for a in db.query(AdminWL).filter(AdminWL.id.in_([r.admin_wl_id for r in rows if r.admin_wl_id])).all()} if rows else {}
-    docs = {d.id: d for d in db.query(AdminBillingDocument).filter(AdminBillingDocument.id.in_([r.billing_document_id for r in rows if r.billing_document_id])).all()} if rows else {}
-    return [{
-        "id": r.id,
-        "admin_wl": {"id": r.admin_wl_id, "brand_name": admins.get(r.admin_wl_id).brand_name if admins.get(r.admin_wl_id) else None},
-        "document": {"id": r.billing_document_id, "invoice_number": docs.get(r.billing_document_id).invoice_number if docs.get(r.billing_document_id) else None},
-        "method": r.method,
-        "status": r.status,
-        "submitted_amount_cents": r.submitted_amount_cents,
-        "submitted_currency": r.submitted_currency,
-        "reference_code": r.reference_code,
-        "proof_url": r.proof_url,
-        "notes": r.notes,
-        "payload": r.payload or {},
-        "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
-        "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
-    } for r in rows]
+    admins = (
+        {
+            a.id: a
+            for a in db.query(AdminWL)
+            .filter(AdminWL.id.in_([r.admin_wl_id for r in rows if r.admin_wl_id]))
+            .all()
+        }
+        if rows
+        else {}
+    )
+    docs = (
+        {
+            d.id: d
+            for d in db.query(AdminBillingDocument)
+            .filter(
+                AdminBillingDocument.id.in_(
+                    [r.billing_document_id for r in rows if r.billing_document_id]
+                )
+            )
+            .all()
+        }
+        if rows
+        else {}
+    )
+    return [
+        {
+            "id": r.id,
+            "admin_wl": {
+                "id": r.admin_wl_id,
+                "brand_name": admins.get(r.admin_wl_id).brand_name
+                if admins.get(r.admin_wl_id)
+                else None,
+            },
+            "document": {
+                "id": r.billing_document_id,
+                "invoice_number": docs.get(r.billing_document_id).invoice_number
+                if docs.get(r.billing_document_id)
+                else None,
+            },
+            "method": r.method,
+            "status": r.status,
+            "submitted_amount_cents": r.submitted_amount_cents,
+            "submitted_currency": r.submitted_currency,
+            "reference_code": r.reference_code,
+            "proof_url": r.proof_url,
+            "notes": r.notes,
+            "payload": r.payload or {},
+            "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
+            "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
+        }
+        for r in rows
+    ]
 
 
 @router.post("/wl/billing/payments/manual/{submission_id}/approve")
@@ -1854,33 +2595,58 @@ def approve_admin_manual_payment(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    subm = db.query(AdminManualPaymentSubmission).filter(AdminManualPaymentSubmission.id == submission_id).one_or_none()
+    subm = (
+        db.query(AdminManualPaymentSubmission)
+        .filter(AdminManualPaymentSubmission.id == submission_id)
+        .one_or_none()
+    )
     if not subm:
-        raise HTTPException(status_code=404, detail="Pagamento manuale Admin non trovato")
+        raise HTTPException(
+            status_code=404, detail="Pagamento manuale Admin non trovato"
+        )
     if subm.status != "PENDING":
-        raise HTTPException(status_code=409, detail="Pagamento manuale Admin già processato")
+        raise HTTPException(
+            status_code=409, detail="Pagamento manuale Admin già processato"
+        )
     subm.status = "APPROVED"
     subm.review_notes = req.review_notes
     subm.reviewed_by_user_id = getattr(user, "id", None)
     subm.reviewed_at = datetime.now(timezone.utc)
     if subm.payment_id:
-        pay = db.query(AdminPayment).filter(AdminPayment.id == subm.payment_id).one_or_none()
+        pay = (
+            db.query(AdminPayment)
+            .filter(AdminPayment.id == subm.payment_id)
+            .one_or_none()
+        )
         if pay:
             pay.status = "PAID"
             if req.approve_amount_cents is not None:
                 pay.amount_cents = req.approve_amount_cents
             pay.paid_at = datetime.now(timezone.utc)
-    doc = db.query(AdminBillingDocument).filter(AdminBillingDocument.id == subm.billing_document_id).one_or_none()
+    doc = (
+        db.query(AdminBillingDocument)
+        .filter(AdminBillingDocument.id == subm.billing_document_id)
+        .one_or_none()
+    )
     if doc:
         if doc.document_type == "PROFORMA":
             doc.document_type = "INVOICE"
         doc.status = "PAID"
         doc.paid_at = datetime.now(timezone.utc)
-        admin_row = db.query(AdminWL).filter(AdminWL.id == doc.admin_wl_id).one_or_none()
+        admin_row = (
+            db.query(AdminWL).filter(AdminWL.id == doc.admin_wl_id).one_or_none()
+        )
         if admin_row:
             prev = admin_row.status
             admin_row.status = "ACTIVE"
-            _create_admin_status_history(db, admin_row.id, prev, "ACTIVE", "Pagamento manuale admin approvato", getattr(user, "id", None))
+            _create_admin_status_history(
+                db,
+                admin_row.id,
+                prev,
+                "ACTIVE",
+                "Pagamento manuale admin approvato",
+                getattr(user, "id", None),
+            )
     db.commit()
     return {"ok": True}
 
@@ -1892,20 +2658,36 @@ def reject_admin_manual_payment(
     user=Depends(require_roles("SUPER_ADMIN")),
     db: Session = Depends(get_db),
 ):
-    subm = db.query(AdminManualPaymentSubmission).filter(AdminManualPaymentSubmission.id == submission_id).one_or_none()
+    subm = (
+        db.query(AdminManualPaymentSubmission)
+        .filter(AdminManualPaymentSubmission.id == submission_id)
+        .one_or_none()
+    )
     if not subm:
-        raise HTTPException(status_code=404, detail="Pagamento manuale Admin non trovato")
+        raise HTTPException(
+            status_code=404, detail="Pagamento manuale Admin non trovato"
+        )
     if subm.status != "PENDING":
-        raise HTTPException(status_code=409, detail="Pagamento manuale Admin già processato")
+        raise HTTPException(
+            status_code=409, detail="Pagamento manuale Admin già processato"
+        )
     subm.status = "REJECTED"
     subm.review_notes = req.review_notes
     subm.reviewed_by_user_id = getattr(user, "id", None)
     subm.reviewed_at = datetime.now(timezone.utc)
     if subm.payment_id:
-        pay = db.query(AdminPayment).filter(AdminPayment.id == subm.payment_id).one_or_none()
+        pay = (
+            db.query(AdminPayment)
+            .filter(AdminPayment.id == subm.payment_id)
+            .one_or_none()
+        )
         if pay:
             pay.status = "REJECTED"
-    doc = db.query(AdminBillingDocument).filter(AdminBillingDocument.id == subm.billing_document_id).one_or_none()
+    doc = (
+        db.query(AdminBillingDocument)
+        .filter(AdminBillingDocument.id == subm.billing_document_id)
+        .one_or_none()
+    )
     if doc and doc.status == "PENDING_VERIFICATION":
         doc.status = "ISSUED"
     db.commit()
@@ -1918,7 +2700,11 @@ def issue_invoice_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     client = db.query(Client).filter(Client.id == req.client_id).one_or_none()
     _enforce_client_scope(client, admin_scope)
     invoice = issue_invoice(
@@ -1934,18 +2720,34 @@ def issue_invoice_endpoint(
     )
     send_result = None
     if req.send_now:
-        send_result = send_invoice_notification(db, invoice=invoice, client=client, actor_type="ADMIN", actor_id=getattr(user, "id", None))
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_INVOICE_ISSUED",
-        entity_type="INVOICE",
-        entity_id=invoice.id,
-        details={"client_id": client.id, "invoice_number": invoice.invoice_number, "send_now": req.send_now},
-    ))
+        send_result = send_invoice_notification(
+            db,
+            invoice=invoice,
+            client=client,
+            actor_type="ADMIN",
+            actor_id=getattr(user, "id", None),
+        )
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_INVOICE_ISSUED",
+            entity_type="INVOICE",
+            entity_id=invoice.id,
+            details={
+                "client_id": client.id,
+                "invoice_number": invoice.invoice_number,
+                "send_now": req.send_now,
+            },
+        )
+    )
     db.commit()
-    return {"ok": True, "invoice": _invoice_with_client(db, invoice), "send_result": send_result}
+    return {
+        "ok": True,
+        "invoice": _invoice_with_client(db, invoice),
+        "send_result": send_result,
+    }
 
 
 @router.post("/invoices/{invoice_number}/send")
@@ -1954,16 +2756,30 @@ def send_invoice_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     invoice = _get_scoped_invoice(db, invoice_number, admin_scope)
     if not invoice.client_id:
         raise HTTPException(status_code=400, detail="Fattura senza cliente associato")
     client = db.query(Client).filter(Client.id == invoice.client_id).one_or_none()
     if not client:
         raise HTTPException(status_code=404, detail="Cliente fattura non trovato")
-    send_result = send_invoice_notification(db, invoice=invoice, client=client, actor_type="ADMIN", actor_id=getattr(user, "id", None))
+    send_result = send_invoice_notification(
+        db,
+        invoice=invoice,
+        client=client,
+        actor_type="ADMIN",
+        actor_id=getattr(user, "id", None),
+    )
     db.commit()
-    return {"ok": True, "invoice": _invoice_with_client(db, invoice), "send_result": send_result}
+    return {
+        "ok": True,
+        "invoice": _invoice_with_client(db, invoice),
+        "send_result": send_result,
+    }
 
 
 @router.post("/invoices/{invoice_number}/mark-paid")
@@ -1972,10 +2788,16 @@ def mark_invoice_paid_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     invoice = _get_scoped_invoice(db, invoice_number, admin_scope)
     if (invoice.status or "").upper() != "PAID":
-        mark_invoice_paid(db, invoice=invoice, actor_type="ADMIN", actor_id=getattr(user, "id", None))
+        mark_invoice_paid(
+            db, invoice=invoice, actor_type="ADMIN", actor_id=getattr(user, "id", None)
+        )
     db.commit()
     return {"ok": True, "invoice": _invoice_with_client(db, invoice)}
 
@@ -1986,7 +2808,11 @@ def invoice_payment_link_endpoint(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
     invoice = _get_scoped_invoice(db, invoice_number, admin_scope)
     if not invoice.client_id:
         raise HTTPException(status_code=400, detail="Fattura senza cliente associato")
@@ -1994,15 +2820,21 @@ def invoice_payment_link_endpoint(
     if not client:
         raise HTTPException(status_code=404, detail="Cliente non trovato")
     result, payment = create_invoice_pay_link(db, invoice=invoice, client=client)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="ADMIN_INVOICE_PAYMENT_LINK_CREATED",
-        entity_type="INVOICE",
-        entity_id=invoice.id,
-        details={"invoice_number": invoice.invoice_number, "payment_id": payment.id, "simulated": result.simulated},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="ADMIN_INVOICE_PAYMENT_LINK_CREATED",
+            entity_type="INVOICE",
+            entity_id=invoice.id,
+            details={
+                "invoice_number": invoice.invoice_number,
+                "payment_id": payment.id,
+                "simulated": result.simulated,
+            },
+        )
+    )
     db.commit()
     return {
         "ok": True,
@@ -2020,15 +2852,29 @@ def list_manual_payments(
     db: Session = Depends(get_db),
     limit: int = 100,
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
-    q = db.query(ManualPaymentSubmission).order_by(ManualPaymentSubmission.submitted_at.desc())
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
+    q = db.query(ManualPaymentSubmission).order_by(
+        ManualPaymentSubmission.submitted_at.desc()
+    )
     if status:
         q = q.filter(ManualPaymentSubmission.status == status.upper())
     rows = q.limit(min(limit, 500)).all()
     invoice_ids = [r.invoice_id for r in rows]
     client_ids = [r.client_id for r in rows if r.client_id]
-    invoices = {i.id: i for i in db.query(Invoice).filter(Invoice.id.in_(invoice_ids)).all()} if invoice_ids else {}
-    clients = {c.id: c for c in db.query(Client).filter(Client.id.in_(client_ids)).all()} if client_ids else {}
+    invoices = (
+        {i.id: i for i in db.query(Invoice).filter(Invoice.id.in_(invoice_ids)).all()}
+        if invoice_ids
+        else {}
+    )
+    clients = (
+        {c.id: c for c in db.query(Client).filter(Client.id.in_(client_ids)).all()}
+        if client_ids
+        else {}
+    )
     result = [
         {
             "id": r.id,
@@ -2043,12 +2889,16 @@ def list_manual_payments(
             "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
             "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
             "review_notes": r.review_notes,
-            "invoice": _invoice_with_client(db, invoices[r.invoice_id]) if r.invoice_id in invoices else None,
+            "invoice": _invoice_with_client(db, invoices[r.invoice_id])
+            if r.invoice_id in invoices
+            else None,
             "client": {
                 "id": clients[r.client_id].id,
                 "full_name": clients[r.client_id].full_name,
                 "email": clients[r.client_id].email,
-            } if r.client_id and r.client_id in clients else None,
+            }
+            if r.client_id and r.client_id in clients
+            else None,
         }
         for r in rows
     ]
@@ -2057,7 +2907,9 @@ def list_manual_payments(
         for item in result:
             client = item.get("client")
             inv = item.get("invoice") or {}
-            client_admin_id = ((inv.get("client") or {}).get("admin_wl_id")) if inv else None
+            client_admin_id = (
+                ((inv.get("client") or {}).get("admin_wl_id")) if inv else None
+            )
             if client and client.get("id"):
                 c = clients.get(client["id"])
                 if not c or c.admin_wl_id != admin_scope.id:
@@ -2076,49 +2928,88 @@ def approve_manual_payment(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
-    sub = db.query(ManualPaymentSubmission).filter(ManualPaymentSubmission.id == submission_id).one_or_none()
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
+    sub = (
+        db.query(ManualPaymentSubmission)
+        .filter(ManualPaymentSubmission.id == submission_id)
+        .one_or_none()
+    )
     if not sub:
-        raise HTTPException(status_code=404, detail="Manual payment submission non trovato")
+        raise HTTPException(
+            status_code=404, detail="Manual payment submission non trovato"
+        )
     if sub.status == "APPROVED":
         invoice = db.query(Invoice).filter(Invoice.id == sub.invoice_id).one_or_none()
-        return {"ok": True, "already_approved": True, "invoice": _invoice_with_client(db, invoice) if invoice else None}
+        return {
+            "ok": True,
+            "already_approved": True,
+            "invoice": _invoice_with_client(db, invoice) if invoice else None,
+        }
     invoice = db.query(Invoice).filter(Invoice.id == sub.invoice_id).one_or_none()
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura associata non trovata")
     if admin_scope:
         if not invoice.client_id:
-            raise HTTPException(status_code=403, detail="Fattura fuori dal tuo perimetro Admin")
+            raise HTTPException(
+                status_code=403, detail="Fattura fuori dal tuo perimetro Admin"
+            )
         client = db.query(Client).filter(Client.id == invoice.client_id).one_or_none()
         _enforce_client_scope(client, admin_scope)
-    payment = db.query(Payment).filter(Payment.id == sub.payment_id).one_or_none() if sub.payment_id else None
+    payment = (
+        db.query(Payment).filter(Payment.id == sub.payment_id).one_or_none()
+        if sub.payment_id
+        else None
+    )
     if payment:
         payment.status = "PAID"
         payment.paid_at = datetime.now(timezone.utc)
         if req.approve_amount_cents and req.approve_amount_cents > 0:
             payment.amount_cents = req.approve_amount_cents
-    promote_proforma_to_invoice(db, invoice=invoice, invoice_channel="ADMIN_MANUAL", payment_method=sub.method)
-    mark_invoice_paid(db, invoice=invoice, actor_type="ADMIN", actor_id=getattr(user, "id", None), payment=payment)
+    promote_proforma_to_invoice(
+        db, invoice=invoice, invoice_channel="ADMIN_MANUAL", payment_method=sub.method
+    )
+    mark_invoice_paid(
+        db,
+        invoice=invoice,
+        actor_type="ADMIN",
+        actor_id=getattr(user, "id", None),
+        payment=payment,
+    )
     sub.status = "APPROVED"
     sub.reviewed_at = datetime.now(timezone.utc)
     sub.reviewed_by_user_id = getattr(user, "id", None)
     sub.review_notes = req.review_notes
     # MVP: riattiva ultima licenza cliente se sospesa/scaduta per mancato pagamento
     if invoice.client_id:
-        lic = db.query(License).filter(License.client_id == invoice.client_id).order_by(License.created_at.desc()).first()
+        lic = (
+            db.query(License)
+            .filter(License.client_id == invoice.client_id)
+            .order_by(License.created_at.desc())
+            .first()
+        )
         if lic and lic.status in {"SUSPENDED", "PAST_DUE", "EXPIRED"}:
             lic.status = "ACTIVE"
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="MANUAL_PAYMENT_APPROVED",
-        entity_type="MANUAL_PAYMENT_SUBMISSION",
-        entity_id=sub.id,
-        details={"invoice_id": sub.invoice_id, "method": sub.method},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="MANUAL_PAYMENT_APPROVED",
+            entity_type="MANUAL_PAYMENT_SUBMISSION",
+            entity_id=sub.id,
+            details={"invoice_id": sub.invoice_id, "method": sub.method},
+        )
+    )
     db.commit()
-    return {"ok": True, "submission_id": sub.id, "invoice": _invoice_with_client(db, invoice)}
+    return {
+        "ok": True,
+        "submission_id": sub.id,
+        "invoice": _invoice_with_client(db, invoice),
+    }
 
 
 @router.post("/payments/manual/{submission_id}/reject")
@@ -2128,16 +3019,28 @@ def reject_manual_payment(
     user=Depends(require_roles("SUPER_ADMIN", "ADMIN_WL")),
     db: Session = Depends(get_db),
 ):
-    admin_scope = _resolve_admin_wl_for_user(db, user, required=True) if getattr(user, "role", None) == "ADMIN_WL" else None
-    sub = db.query(ManualPaymentSubmission).filter(ManualPaymentSubmission.id == submission_id).one_or_none()
+    admin_scope = (
+        _resolve_admin_wl_for_user(db, user, required=True)
+        if getattr(user, "role", None) == "ADMIN_WL"
+        else None
+    )
+    sub = (
+        db.query(ManualPaymentSubmission)
+        .filter(ManualPaymentSubmission.id == submission_id)
+        .one_or_none()
+    )
     if not sub:
-        raise HTTPException(status_code=404, detail="Manual payment submission non trovato")
+        raise HTTPException(
+            status_code=404, detail="Manual payment submission non trovato"
+        )
     invoice = db.query(Invoice).filter(Invoice.id == sub.invoice_id).one_or_none()
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura associata non trovata")
     if admin_scope:
         if not invoice.client_id:
-            raise HTTPException(status_code=403, detail="Fattura fuori dal tuo perimetro Admin")
+            raise HTTPException(
+                status_code=403, detail="Fattura fuori dal tuo perimetro Admin"
+            )
         client = db.query(Client).filter(Client.id == invoice.client_id).one_or_none()
         _enforce_client_scope(client, admin_scope)
     sub.status = "REJECTED"
@@ -2148,15 +3051,25 @@ def reject_manual_payment(
         payment = db.query(Payment).filter(Payment.id == sub.payment_id).one_or_none()
         if payment and payment.status != "PAID":
             payment.status = "REJECTED"
-    invoice.status = "SENT" if (invoice.status or "").upper() == "PENDING_VERIFICATION" else invoice.status
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="ADMIN",
-        actor_id=getattr(user, "id", None),
-        action="MANUAL_PAYMENT_REJECTED",
-        entity_type="MANUAL_PAYMENT_SUBMISSION",
-        entity_id=sub.id,
-        details={"invoice_id": sub.invoice_id, "method": sub.method},
-    ))
+    invoice.status = (
+        "SENT"
+        if (invoice.status or "").upper() == "PENDING_VERIFICATION"
+        else invoice.status
+    )
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="ADMIN",
+            actor_id=getattr(user, "id", None),
+            action="MANUAL_PAYMENT_REJECTED",
+            entity_type="MANUAL_PAYMENT_SUBMISSION",
+            entity_id=sub.id,
+            details={"invoice_id": sub.invoice_id, "method": sub.method},
+        )
+    )
     db.commit()
-    return {"ok": True, "submission_id": sub.id, "invoice": _invoice_with_client(db, invoice)}
+    return {
+        "ok": True,
+        "submission_id": sub.id,
+        "invoice": _invoice_with_client(db, invoice),
+    }

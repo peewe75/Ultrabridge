@@ -5,7 +5,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,18 @@ from app.db import get_db
 from app.deps import get_current_user
 import time
 
-from app.models import AuditLog, Client, Download, Invoice, License, ManualPaymentSubmission, Payment, Subscription, SignalRoom, User
+from app.models import (
+    AuditLog,
+    Client,
+    Download,
+    Invoice,
+    License,
+    ManualPaymentSubmission,
+    Payment,
+    Subscription,
+    SignalRoom,
+    User,
+)
 from app.schemas import (
     BillingPortalResponse,
     ClientDashboardResponse,
@@ -34,9 +45,17 @@ from app.services.invoicing import (
     mark_invoice_paid,
 )
 from app.services.stripe_service import create_billing_portal_session
-from app.services.bridge_files import enqueue_control_command, read_recent_events, read_recent_results, read_state_snapshot
+from app.services.bridge_files import (
+    enqueue_control_command,
+    read_recent_events,
+    read_recent_results,
+    read_state_snapshot,
+)
 from app.services.licenses import issue_activation_code, normalize_license_status
-from app.services.download_access import is_download_allowed_for_client, resolve_allowed_download_codes
+from app.services.download_access import (
+    is_download_allowed_for_client,
+    resolve_allowed_download_codes,
+)
 
 router = APIRouter(prefix="/client", tags=["client"])
 
@@ -85,8 +104,19 @@ def client_dashboard(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
-    invoices = db.query(Invoice).filter(Invoice.client_id == client.id).order_by(Invoice.created_at.desc()).limit(20).all()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
+    invoices = (
+        db.query(Invoice)
+        .filter(Invoice.client_id == client.id)
+        .order_by(Invoice.created_at.desc())
+        .limit(20)
+        .all()
+    )
     invoice_rows = [invoice_to_dict(i, client=client) for i in invoices]
     return ClientDashboardResponse(
         client=ClientOut.model_validate(client, from_attributes=True),
@@ -101,7 +131,12 @@ def client_license(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
     if not lic:
         raise HTTPException(status_code=404, detail="Licenza non trovata")
     normalize_license_status(lic)
@@ -116,31 +151,53 @@ def client_license_activation_code(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
     if not lic:
         raise HTTPException(status_code=404, detail="Licenza non trovata")
     normalize_license_status(lic)
     if lic.status not in {"ACTIVE", "PAST_DUE", "GRACE_REPLACEMENT"}:
-        raise HTTPException(status_code=400, detail=f"Licenza non attivabile via bot: {lic.status}")
+        raise HTTPException(
+            status_code=400, detail=f"Licenza non attivabile via bot: {lic.status}"
+        )
     ttl_minutes = max(1, min(int(req.ttl_minutes or 20), 60 * 48))
     activation_code = issue_activation_code(lic, ttl_minutes=ttl_minutes)
     db.add(lic)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=getattr(user, "id", None),
-        action="LICENSE_ACTIVATION_CODE_ISSUED",
-        entity_type="LICENSE",
-        entity_id=lic.id,
-        details={"ttl_minutes": ttl_minutes},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=getattr(user, "id", None),
+            action="LICENSE_ACTIVATION_CODE_ISSUED",
+            entity_type="LICENSE",
+            entity_id=lic.id,
+            details={"ttl_minutes": ttl_minutes},
+        )
+    )
     db.commit()
     return {
         "ok": True,
         "license_id": lic.id,
         "activation_code": activation_code,
-        "expires_at": lic.activation_code_expires_at.isoformat() if lic.activation_code_expires_at else None,
+        "expires_at": lic.activation_code_expires_at.isoformat()
+        if lic.activation_code_expires_at
+        else None,
     }
+
+
+@router.post("/license/generate-activation-code")
+def client_license_generate_activation_code_legacy(
+    req: LicenseActivationCodeRequest = Body(
+        default_factory=LicenseActivationCodeRequest
+    ),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return client_license_activation_code(req=req, user=user, db=db)
 
 
 @router.get("/ea/config", response_model=ClientEaConfigResponse)
@@ -149,7 +206,12 @@ def client_ea_config_get(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
 
     profile = client.fiscal_profile or {}
     ea_cfg = profile.get("ea_config") if isinstance(profile, dict) else {}
@@ -180,7 +242,12 @@ def client_ea_config_save(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
 
     mt4 = (req.mt4_account or "").strip() or None
     mt5 = (req.mt5_account or "").strip() or None
@@ -220,7 +287,12 @@ def client_invoices(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    rows = db.query(Invoice).filter(Invoice.client_id == client.id).order_by(Invoice.created_at.desc()).all()
+    rows = (
+        db.query(Invoice)
+        .filter(Invoice.client_id == client.id)
+        .order_by(Invoice.created_at.desc())
+        .all()
+    )
     return [invoice_to_dict(i, client=client) for i in rows]
 
 
@@ -250,21 +322,23 @@ def client_manual_payment_archive(
     for r in rows:
         inv = invoice_map.get(r.invoice_id)
         inv_dict = invoice_to_dict(inv, client=client) if inv else None
-        result.append({
-            "id": r.id,
-            "method": r.method,
-            "status": r.status,
-            "reference_code": r.reference_code,
-            "submitted_amount_cents": r.submitted_amount_cents,
-            "submitted_currency": r.submitted_currency,
-            "proof_url": r.proof_url,
-            "notes": r.notes,
-            "review_notes": r.review_notes,
-            "payload": r.payload or {},
-            "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
-            "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
-            "invoice": inv_dict,
-        })
+        result.append(
+            {
+                "id": r.id,
+                "method": r.method,
+                "status": r.status,
+                "reference_code": r.reference_code,
+                "submitted_amount_cents": r.submitted_amount_cents,
+                "submitted_currency": r.submitted_currency,
+                "proof_url": r.proof_url,
+                "notes": r.notes,
+                "review_notes": r.review_notes,
+                "payload": r.payload or {},
+                "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
+                "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
+                "invoice": inv_dict,
+            }
+        )
     return result
 
 
@@ -285,32 +359,51 @@ def client_payments_archive(
         q = q.filter(Payment.status == status_u)
     rows = q.limit(200).all()
     payment_ids = [r.id for r in rows]
-    invoices = db.query(Invoice).filter(Invoice.payment_id.in_(payment_ids)).all() if payment_ids else []
+    invoices = (
+        db.query(Invoice).filter(Invoice.payment_id.in_(payment_ids)).all()
+        if payment_ids
+        else []
+    )
     invoice_map = {i.payment_id: i for i in invoices if i.payment_id}
-    manuals = db.query(ManualPaymentSubmission).filter(ManualPaymentSubmission.payment_id.in_(payment_ids)).all() if payment_ids else []
+    manuals = (
+        db.query(ManualPaymentSubmission)
+        .filter(ManualPaymentSubmission.payment_id.in_(payment_ids))
+        .all()
+        if payment_ids
+        else []
+    )
     manual_map = {m.payment_id: m for m in manuals if m.payment_id}
     result = []
     for p in rows:
         inv = invoice_map.get(p.id)
         m = manual_map.get(p.id)
-        result.append({
-            "id": p.id,
-            "status": p.status,
-            "method": (p.metadata_json or {}).get("payment_method") or ("STRIPE" if p.stripe_payment_intent_id or p.stripe_checkout_session_id else "MANUAL"),
-            "amount_cents": p.amount_cents,
-            "currency": p.currency,
-            "paid_at": p.paid_at.isoformat() if p.paid_at else None,
-            "created_at": p.created_at.isoformat() if p.created_at else None,
-            "invoice": invoice_to_dict(inv, client=client) if inv else None,
-            "manual_submission": {
-                "id": m.id,
-                "status": m.status,
-                "reference_code": m.reference_code,
-                "proof_url": m.proof_url,
-                "review_notes": m.review_notes,
-                "method": m.method,
-            } if m else None,
-        })
+        result.append(
+            {
+                "id": p.id,
+                "status": p.status,
+                "method": (p.metadata_json or {}).get("payment_method")
+                or (
+                    "STRIPE"
+                    if p.stripe_payment_intent_id or p.stripe_checkout_session_id
+                    else "MANUAL"
+                ),
+                "amount_cents": p.amount_cents,
+                "currency": p.currency,
+                "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "invoice": invoice_to_dict(inv, client=client) if inv else None,
+                "manual_submission": {
+                    "id": m.id,
+                    "status": m.status,
+                    "reference_code": m.reference_code,
+                    "proof_url": m.proof_url,
+                    "review_notes": m.review_notes,
+                    "method": m.method,
+                }
+                if m
+                else None,
+            }
+        )
     return result
 
 
@@ -321,11 +414,21 @@ def client_invoice_pay(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     if (invoice.status or "").upper() == "PAID":
-        return {"ok": True, "already_paid": True, "invoice": invoice_to_dict(invoice, client=client)}
+        return {
+            "ok": True,
+            "already_paid": True,
+            "invoice": invoice_to_dict(invoice, client=client),
+        }
     result, payment = create_invoice_pay_link(db, invoice=invoice, client=client)
     db.commit()
     return {
@@ -344,21 +447,36 @@ def client_invoice_confirm_demo_payment(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     mark_invoice_paid(db, invoice=invoice, actor_type="CLIENT", actor_id=user.id)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=user.id,
-        action="INVOICE_DEMO_PAYMENT_CONFIRMED",
-        entity_type="INVOICE",
-        entity_id=invoice.id,
-        details={"invoice_number": invoice.invoice_number, "timestamp": datetime.now(timezone.utc).isoformat()},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=user.id,
+            action="INVOICE_DEMO_PAYMENT_CONFIRMED",
+            entity_type="INVOICE",
+            entity_id=invoice.id,
+            details={
+                "invoice_number": invoice.invoice_number,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+    )
     db.commit()
-    return {"ok": True, "simulated": True, "invoice": invoice_to_dict(invoice, client=client)}
+    return {
+        "ok": True,
+        "simulated": True,
+        "invoice": invoice_to_dict(invoice, client=client),
+    }
 
 
 @router.get("/invoices/{invoice_number}/manual-methods")
@@ -368,7 +486,13 @@ def client_invoice_manual_methods(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     return {
@@ -389,7 +513,13 @@ async def client_upload_manual_payment_proof(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     method_u = method.upper().strip()
@@ -407,20 +537,29 @@ async def client_upload_manual_payment_proof(
         raise HTTPException(status_code=400, detail="File troppo grande (max 8MB)")
     os.makedirs(get_settings().manual_payment_proofs_dir, exist_ok=True)
     safe_inv = re.sub(r"[^A-Za-z0-9._-]", "_", invoice_number)
-    safe_base = re.sub(r"[^A-Za-z0-9._-]", "_", os.path.splitext(original)[0])[:32] or "proof"
+    safe_base = (
+        re.sub(r"[^A-Za-z0-9._-]", "_", os.path.splitext(original)[0])[:32] or "proof"
+    )
     name = f"{safe_inv}_{method_u}_{uuid.uuid4().hex[:8]}_{safe_base}{ext}"
     path = os.path.join(get_settings().manual_payment_proofs_dir, name)
     with open(path, "wb") as f:
         f.write(content)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=user.id,
-        action="MANUAL_PAYMENT_PROOF_UPLOADED",
-        entity_type="INVOICE",
-        entity_id=invoice.id,
-        details={"invoice_number": invoice.invoice_number, "method": method_u, "proof_name": name, "size": len(content)},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=user.id,
+            action="MANUAL_PAYMENT_PROOF_UPLOADED",
+            entity_type="INVOICE",
+            entity_id=invoice.id,
+            details={
+                "invoice_number": invoice.invoice_number,
+                "method": method_u,
+                "proof_name": name,
+                "size": len(content),
+            },
+        )
+    )
     db.commit()
     return {"ok": True, "proof_url": f"/api/files/proof/{name}", "proof_name": name}
 
@@ -453,16 +592,21 @@ def _submit_manual_payment(
         .first()
     )
     if existing_pending:
-        raise HTTPException(status_code=409, detail="Esiste già una segnalazione pagamento in verifica per questa fattura")
+        raise HTTPException(
+            status_code=409,
+            detail="Esiste già una segnalazione pagamento in verifica per questa fattura",
+        )
     payment = ensure_invoice_payment_record(db, invoice=invoice, client=client)
     payment.status = "PENDING_VERIFICATION"
     meta = dict(payment.metadata_json or {})
-    meta.update({
-        "invoice_number": invoice.invoice_number,
-        "billing_kind": "MANUAL_INVOICE_PAYMENT",
-        "payment_method": method_u,
-        "submitted_by_client_id": client.id,
-    })
+    meta.update(
+        {
+            "invoice_number": invoice.invoice_number,
+            "billing_kind": "MANUAL_INVOICE_PAYMENT",
+            "payment_method": method_u,
+            "submitted_by_client_id": client.id,
+        }
+    )
     payment.metadata_json = meta
     submission = ManualPaymentSubmission(
         id=str(uuid.uuid4()),
@@ -480,15 +624,21 @@ def _submit_manual_payment(
     )
     db.add(submission)
     invoice.status = "PENDING_VERIFICATION"
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=user.id,
-        action="MANUAL_PAYMENT_SUBMITTED",
-        entity_type="INVOICE",
-        entity_id=invoice.id,
-        details={"invoice_number": invoice.invoice_number, "method": method_u, "submission_id": submission.id},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=user.id,
+            action="MANUAL_PAYMENT_SUBMITTED",
+            entity_type="INVOICE",
+            entity_id=invoice.id,
+            details={
+                "invoice_number": invoice.invoice_number,
+                "method": method_u,
+                "submission_id": submission.id,
+            },
+        )
+    )
     db.commit()
     return {
         "ok": True,
@@ -498,7 +648,9 @@ def _submit_manual_payment(
             "method": submission.method,
             "status": submission.status,
             "reference_code": submission.reference_code,
-            "submitted_at": submission.submitted_at.isoformat() if submission.submitted_at else None,
+            "submitted_at": submission.submitted_at.isoformat()
+            if submission.submitted_at
+            else None,
         },
     }
 
@@ -511,7 +663,13 @@ def client_submit_bank_transfer(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     return _submit_manual_payment(
@@ -537,7 +695,13 @@ def client_submit_usdt(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    invoice = db.query(Invoice).filter(Invoice.invoice_number == invoice_number, Invoice.client_id == client.id).one_or_none()
+    invoice = (
+        db.query(Invoice)
+        .filter(
+            Invoice.invoice_number == invoice_number, Invoice.client_id == client.id
+        )
+        .one_or_none()
+    )
     if not invoice:
         raise HTTPException(status_code=404, detail="Fattura non trovata")
     return _submit_manual_payment(
@@ -551,7 +715,11 @@ def client_submit_usdt(
         submitted_currency="USDT",
         notes=req.notes,
         proof_url=req.proof_url,
-        payload={"type": "USDT_TRC20", "txid": req.txid, "amount_usdt": req.amount_usdt},
+        payload={
+            "type": "USDT_TRC20",
+            "txid": req.txid,
+            "amount_usdt": req.amount_usdt,
+        },
     )
 
 
@@ -561,10 +729,19 @@ def client_downloads(
     db: Session = Depends(get_db),
 ):
     # Presenza cliente richiesta per proteggere file
-    client = db.query(Client).filter((Client.user_id == user.id) | (Client.email == user.email)).first()
+    client = (
+        db.query(Client)
+        .filter((Client.user_id == user.id) | (Client.email == user.email))
+        .first()
+    )
     if not client:
         raise HTTPException(status_code=404, detail="Cliente non trovato")
-    rows = db.query(Download).filter(Download.active.is_(True)).order_by(Download.code.asc()).all()
+    rows = (
+        db.query(Download)
+        .filter(Download.active.is_(True))
+        .order_by(Download.code.asc())
+        .all()
+    )
     allowed_codes = resolve_allowed_download_codes(db, client)
     filtered = [r for r in rows if str(r.code or "").upper() in allowed_codes]
     return [DownloadOut.model_validate(r, from_attributes=True) for r in filtered]
@@ -577,11 +754,17 @@ def client_download_token(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    row = db.query(Download).filter(Download.id == download_id, Download.active.is_(True)).one_or_none()
+    row = (
+        db.query(Download)
+        .filter(Download.id == download_id, Download.active.is_(True))
+        .one_or_none()
+    )
     if not row:
         raise HTTPException(status_code=404, detail="Download non trovato")
     if not is_download_allowed_for_client(db, client, row):
-        raise HTTPException(status_code=403, detail="Download non abilitato per il tuo piano")
+        raise HTTPException(
+            status_code=403, detail="Download non abilitato per il tuo piano"
+        )
     exp = int(time.time()) + 600
     return {"url": build_download_url(download_id, client.id, exp), "expires_at": exp}
 
@@ -592,12 +775,19 @@ def client_billing_portal(
     db: Session = Depends(get_db),
 ):
     client = _resolve_client(db, user)
-    sub = db.query(Subscription).filter(Subscription.client_id == client.id).order_by(Subscription.created_at.desc()).first()
+    sub = (
+        db.query(Subscription)
+        .filter(Subscription.client_id == client.id)
+        .order_by(Subscription.created_at.desc())
+        .first()
+    )
     if not sub or not sub.stripe_customer_id:
         # fallback demo
         result = create_billing_portal_session(stripe_customer_id=f"demo_{client.id}")
     else:
-        result = create_billing_portal_session(stripe_customer_id=sub.stripe_customer_id)
+        result = create_billing_portal_session(
+            stripe_customer_id=sub.stripe_customer_id
+        )
     return BillingPortalResponse(url=result.url, simulated=result.simulated)
 
 
@@ -608,8 +798,15 @@ def client_ea_events(
     limit: int = 50,
 ):
     # auth presence check only; events are global in current file bridge MVP
-    _ = db.query(Client).filter((Client.user_id == user.id) | (Client.email == user.email)).first()
-    return {"events": read_recent_events(limit=min(limit, 200)), "results": read_recent_results(limit=min(limit, 50))}
+    _ = (
+        db.query(Client)
+        .filter((Client.user_id == user.id) | (Client.email == user.email))
+        .first()
+    )
+    return {
+        "events": read_recent_events(limit=min(limit, 200)),
+        "results": read_recent_results(limit=min(limit, 50)),
+    }
 
 
 @router.get("/trading/state")
@@ -617,7 +814,11 @@ def client_trading_state(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _ = db.query(Client).filter((Client.user_id == user.id) | (Client.email == user.email)).first()
+    _ = (
+        db.query(Client)
+        .filter((Client.user_id == user.id) | (Client.email == user.email))
+        .first()
+    )
     state = read_state_snapshot()
     return {
         "positions": state.get("positions", {}),
@@ -637,10 +838,19 @@ def client_trading_control(
     client = _resolve_client(db, user)
     action = (req.action or "").upper()
     allowed = {
-        "CLOSE_ALL", "CLOSE_BUY", "CLOSE_SELL",
+        "CLOSE_ALL",
+        "CLOSE_BUY",
+        "CLOSE_SELL",
         "CLOSE_TICKET",
-        "CANCEL_ALL", "CANCEL_BUY", "CANCEL_SELL", "CANCEL_TICKET",
-        "SET_SLTP", "SET_SL", "SET_TP", "MOVE_SL", "MOVE_BE",
+        "CANCEL_ALL",
+        "CANCEL_BUY",
+        "CANCEL_SELL",
+        "CANCEL_TICKET",
+        "SET_SLTP",
+        "SET_SL",
+        "SET_TP",
+        "MOVE_SL",
+        "MOVE_BE",
     }
     if action not in allowed:
         raise HTTPException(status_code=400, detail="Azione non supportata")
@@ -680,15 +890,17 @@ def link_telegram_chat(
     client = _resolve_client(db, user)
     client.telegram_chat_id = str(chat_id)
     db.add(client)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=user.id,
-        action="CLIENT_TELEGRAM_ID_SAVED",
-        entity_type="CLIENT",
-        entity_id=client.id,
-        details={"telegram_chat_id": str(chat_id)},
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=user.id,
+            action="CLIENT_TELEGRAM_ID_SAVED",
+            entity_type="CLIENT",
+            entity_id=client.id,
+            details={"telegram_chat_id": str(chat_id)},
+        )
+    )
     db.commit()
     return {"ok": True, "chat_id": chat_id, "client_id": client.id}
 
@@ -707,24 +919,33 @@ def link_signal_room(
     source_chat_id = (req.get("source_chat_id") or "").strip()
 
     if not room_id and not source_chat_id:
-        raise HTTPException(status_code=400, detail="room_id oppure source_chat_id richiesto")
+        raise HTTPException(
+            status_code=400, detail="room_id oppure source_chat_id richiesto"
+        )
 
     client = _resolve_client(db, user)
 
     # Cerca la SignalRoom per ID interno o per Telegram source_chat_id
     room: SignalRoom | None = None
     if room_id:
-        room = db.query(SignalRoom).filter(SignalRoom.id == room_id, SignalRoom.active.is_(True)).first()
+        room = (
+            db.query(SignalRoom)
+            .filter(SignalRoom.id == room_id, SignalRoom.active.is_(True))
+            .first()
+        )
     if not room and source_chat_id:
-        room = db.query(SignalRoom).filter(
-            SignalRoom.source_chat_id == source_chat_id,
-            SignalRoom.active.is_(True)
-        ).first()
+        room = (
+            db.query(SignalRoom)
+            .filter(
+                SignalRoom.source_chat_id == source_chat_id, SignalRoom.active.is_(True)
+            )
+            .first()
+        )
 
     if not room:
         raise HTTPException(
             status_code=404,
-            detail="Canale segnali non trovato. Verifica l'ID comunicato dal tuo provider."
+            detail="Canale segnali non trovato. Verifica l'ID comunicato dal tuo provider.",
         )
 
     client.signal_room_id = room.id
@@ -732,24 +953,29 @@ def link_signal_room(
     if room.owner_user_id and not client.admin_wl_id:
         # cerca admin_wl collegato all'owner_user_id della room
         from app.models import AdminWL
-        admin_wl = db.query(AdminWL).filter(AdminWL.user_id == room.owner_user_id).first()
+
+        admin_wl = (
+            db.query(AdminWL).filter(AdminWL.user_id == room.owner_user_id).first()
+        )
         if admin_wl:
             client.admin_wl_id = admin_wl.id
 
     db.add(client)
-    db.add(AuditLog(
-        id=str(uuid.uuid4()),
-        actor_type="CLIENT",
-        actor_id=user.id,
-        action="CLIENT_SIGNAL_ROOM_LINKED",
-        entity_type="CLIENT",
-        entity_id=client.id,
-        details={
-            "signal_room_id": room.id,
-            "room_name": room.name,
-            "source_chat_id": room.source_chat_id,
-        },
-    ))
+    db.add(
+        AuditLog(
+            id=str(uuid.uuid4()),
+            actor_type="CLIENT",
+            actor_id=user.id,
+            action="CLIENT_SIGNAL_ROOM_LINKED",
+            entity_type="CLIENT",
+            entity_id=client.id,
+            details={
+                "signal_room_id": room.id,
+                "room_name": room.name,
+                "source_chat_id": room.source_chat_id,
+            },
+        )
+    )
     db.commit()
     return {
         "ok": True,
@@ -770,7 +996,12 @@ def client_onboarding_status(
     Indica quali step sono completati e quali mancano.
     """
     client = _resolve_client(db, user)
-    lic = db.query(License).filter(License.client_id == client.id).order_by(License.created_at.desc()).first()
+    lic = (
+        db.query(License)
+        .filter(License.client_id == client.id)
+        .order_by(License.created_at.desc())
+        .first()
+    )
 
     profile = client.fiscal_profile or {}
     ea_cfg = profile.get("ea_config") if isinstance(profile, dict) else {}
@@ -778,11 +1009,15 @@ def client_onboarding_status(
         ea_cfg = {}
 
     has_mt4 = bool(
-        ea_cfg.get("mt4_account") or
-        (lic and lic.mt_accounts and lic.mt_accounts.get("MT4"))
+        ea_cfg.get("mt4_account")
+        or (lic and lic.mt_accounts and lic.mt_accounts.get("MT4"))
     )
-    has_license_active = bool(lic and lic.status in {"ACTIVE", "PAST_DUE", "GRACE_REPLACEMENT"})
-    license_telegram_activated = bool(lic and lic.activation_code_hash is None and lic.activation_code_used_at)
+    has_license_active = bool(
+        lic and lic.status in {"ACTIVE", "PAST_DUE", "GRACE_REPLACEMENT"}
+    )
+    license_telegram_activated = bool(
+        lic and lic.activation_code_hash is None and lic.activation_code_used_at
+    )
 
     steps = {
         "registered": True,  # se arriva qui, è già registrato
@@ -815,5 +1050,7 @@ def client_onboarding_status(
             "id": lic.id if lic else None,
             "status": lic.status if lic else None,
             "expiry_at": lic.expiry_at.isoformat() if lic and lic.expiry_at else None,
-        } if lic else None,
+        }
+        if lic
+        else None,
     }

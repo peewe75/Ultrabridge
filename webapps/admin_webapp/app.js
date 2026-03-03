@@ -2430,6 +2430,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create Admin Form
     const createAdminBtn = document.getElementById('create-admin-btn');
     const createAdminModal = document.getElementById('create-admin-modal');
+    const refreshWlBtn = document.getElementById('refresh-wl-network-btn');
+
+    async function promptRolePromotion() {
+        if (!hasBackendAuth()) {
+            toast('Effettua login come Super Admin per promuovere utenti.', 'warning', 3600);
+            return;
+        }
+        const emailRaw = prompt('Email utente Clerk da promuovere:', '');
+        if (!emailRaw) return;
+        const email = emailRaw.trim().toLowerCase();
+        if (!email || !email.includes('@')) {
+            toast('Email non valida.', 'error', 2800);
+            return;
+        }
+        const roleRaw = prompt('Ruolo target: ADMIN_WL o SUPER_ADMIN', 'ADMIN_WL');
+        if (!roleRaw) return;
+        const role = roleRaw.trim().toUpperCase();
+        if (!['ADMIN_WL', 'SUPER_ADMIN', 'CLIENT', 'AFFILIATE'].includes(role)) {
+            toast('Ruolo non supportato. Usa ADMIN_WL o SUPER_ADMIN.', 'error', 3600);
+            return;
+        }
+        try {
+            const out = await apiFetch('/admin/users/assign-role', {
+                method: 'POST',
+                body: JSON.stringify({ email, role }),
+            });
+            toast(`Ruolo aggiornato: ${out.user?.email} -> ${out.user?.role}`, 'success', 3600);
+            await syncAdminFromBackend();
+        } catch (err) {
+            toast(`Promozione fallita: ${err.message}`, 'error', 4200);
+        }
+    }
+
+    if (refreshWlBtn && !document.getElementById('promote-user-btn')) {
+        const promoteBtn = document.createElement('button');
+        promoteBtn.id = 'promote-user-btn';
+        promoteBtn.className = 'btn btn-secondary btn-sm';
+        promoteBtn.textContent = '⬆️ Promuovi Utente';
+        promoteBtn.title = 'Promuovi utente Clerk a ADMIN_WL o SUPER_ADMIN';
+        promoteBtn.addEventListener('click', promptRolePromotion);
+        refreshWlBtn.parentElement?.appendChild(promoteBtn);
+    }
+
     if (createAdminBtn) {
         createAdminBtn.addEventListener('click', () => {
             createAdminModal.style.display = 'flex';
@@ -2464,6 +2507,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 createAdminModal.style.display = 'none';
                 e.target.reset();
                 await syncAdminFromBackend();
+                if (!res?.role_sync?.updated) {
+                    toast('Admin WL creato. Ruolo utente non aggiornato: l\'utente deve prima registrarsi su Clerk, poi usa "Promuovi Utente".', 'warning', 5200);
+                } else {
+                    toast(`Ruolo aggiornato automaticamente: ${email} -> ADMIN_WL`, 'success', 4200);
+                }
                 toast(`Admin WL creato: ${row?.brand_name || brand}`, 'success', 3200);
                 return;
             } catch (err) {
